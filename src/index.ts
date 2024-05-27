@@ -18,7 +18,12 @@ app.use('*', async (req: Request, res: Response, next: NextFunction) => {
   const userAgent = req.headers['user-agent']
   res.locals.ip = ip
 
-  Logger.log(req.method).put(req.params?.['0']).next('ip').put(ip).next('user-agent').put(userAgent).out()
+  Logger.log(req.method).put(req.params?.['0'])
+    .next('ip').put(ip)
+    .next('user-agent').put(userAgent)
+    .next('DeviceID').put(req.headers['x-device-id'])
+    .next('Platform').put(req.headers['x-platform'])
+    .out()
   next()
 })
 
