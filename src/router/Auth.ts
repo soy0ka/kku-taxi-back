@@ -20,12 +20,10 @@ app.use(express.urlencoded({ extended: true }))
 app.post('/login', async (req: Request, res: Response) => {
   const { email } = req.body
   if (!email) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
-  console.log(email)
   if (!Mailer.MailRegex.test(email)) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
 
   const user = await prisma.user.findUnique({ where: { email } }) || await prisma.user.create({ data: { email, name: RandomName() } })
   if (!user) return res.status(500).send(Formatter.format(false, 'Internal Server Error')).end()
-  console.log(user)
   if (user.banned) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
 
   const code = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
@@ -38,6 +36,9 @@ app.post('/login', async (req: Request, res: Response) => {
 
 app.post('/code', async (req: Request, res: Response) => {
   const { code } = req.body
+  const deviceID = req.headers['x-device-id']
+  const platform = req.headers['x-device']
+
   if (!code) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
 
   const dbcode = await prisma.authCode.findFirst({ where: { code }, include: { User: true } })
@@ -45,6 +46,16 @@ app.post('/code', async (req: Request, res: Response) => {
 
   if (dbcode.expiredAt < new Date()) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
   const token = JWT.sign(dbcode.User.id)
+  await prisma.authCode.delete({ where: { id: dbcode.id } })
+  await prisma.tokens.create({
+    data: {
+      device: String(deviceID),
+      platform: String(platform),
+      expiredAt: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 14),
+      User: { connect: { id: dbcode.User.id } },
+      token
+    }
+  })
   return res.status(200).send(Formatter.format(true, 'OK', { token })).end()
 })
 
@@ -57,6 +68,11 @@ app.get('/me', async (req: Request, res: Response) => {
   }
 
   return res.status(200).send(Formatter.format(true, 'OK', payload)).end()
+})
+
+app.get('/mydevice', async (req: Request, res: Response) => {
+  const tokens = await prisma.tokens.findMany({ where: { userId: res.locals.user.id } })
+  return res.status(200).send(Formatter.format(true, 'OK', tokens)).end()
 })
 
 export default app

@@ -21,11 +21,23 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   authCode  authCode[]
+  Tokens    Tokens[]
 }
 
 model authCode {
   id        Int      @id @default(autoincrement())
   code      String
+  userId    Int
+  createdAt DateTime @default(now())
+  expiredAt DateTime
+  User      User     @relation(fields: [userId], references: [id])
+}
+
+model Tokens {
+  id        Int      @id @default(autoincrement())
+  token     String
+  device    String
+  platform  String
   userId    Int
   createdAt DateTime @default(now())
   expiredAt DateTime
