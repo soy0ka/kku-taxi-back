@@ -18,6 +18,7 @@ app.use('*', async (req: Request, res: Response, next: NextFunction) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   const userAgent = req.headers['user-agent']
   res.locals.ip = ip
+
   Logger.log(req.method).put(req.params?.['0']).next('ip').put(ip).next('user-agent').put(userAgent).out()
   next()
 })
