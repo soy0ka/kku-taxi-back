@@ -5,7 +5,6 @@ import { Logger } from './utils/Logger'
 import express, { Request, Response, NextFunction } from 'express'
 
 import Auth from './router/Auth'
-import MiddleWare from './classes/Middleware'
 
 const app = express()
 
@@ -23,7 +22,7 @@ app.use('*', async (req: Request, res: Response, next: NextFunction) => {
   next()
 })
 
-app.use(MiddleWare.verify)
+// app.use(MiddleWare.verify)
 app.use('/auth', Auth)
 
 app.use('/session', async (req: Request, res: Response) => {
