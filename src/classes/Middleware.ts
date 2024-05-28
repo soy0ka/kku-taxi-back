@@ -28,6 +28,9 @@ export default class MiddleWare {
     const token = req.header('Authorization')?.split('Bearer ')[1]
     if (!token) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
     try {
+      const dbToken = await db.tokens.findFirst({ where: { token } })
+      if (!dbToken) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
+
       const decoded = JWT.verify(token)
       if (!decoded || !decoded.ok) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
 
