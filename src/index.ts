@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client'
 import express, { Request, Response, NextFunction } from 'express'
 
 import Auth from './router/Auth'
+import Notice from './router/Notice'
 // import MiddleWare from './classes/Middleware'
 
 const app = express()
@@ -30,6 +31,7 @@ app.use('*', async (req: Request, res: Response, next: NextFunction) => {
 })
 
 app.use('/auth', Auth)
+app.use('/notice', Notice)
 
 app.use('/session', async (req: Request, res: Response) => {
   return res.status(200).send({ code: 200, message: 'OK' }).end()
