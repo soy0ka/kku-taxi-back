@@ -2,11 +2,14 @@ import 'dotenv/config'
 import cors from 'cors'
 import helmet from 'helmet'
 import { Logger } from './utils/Logger'
+import { PrismaClient } from '@prisma/client'
 import express, { Request, Response, NextFunction } from 'express'
 
 import Auth from './router/Auth'
+// import MiddleWare from './classes/Middleware'
 
 const app = express()
+const prisma = new PrismaClient()
 
 app.use(cors())
 app.use(helmet())
@@ -17,7 +20,6 @@ app.use('*', async (req: Request, res: Response, next: NextFunction) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   const userAgent = req.headers['user-agent']
   res.locals.ip = ip
-
   Logger.log(req.method).put(req.params?.['0'])
     .next('ip').put(ip)
     .next('user-agent').put(userAgent)
@@ -27,7 +29,6 @@ app.use('*', async (req: Request, res: Response, next: NextFunction) => {
   next()
 })
 
-// app.use(MiddleWare.verify)
 app.use('/auth', Auth)
 
 app.use('/session', async (req: Request, res: Response) => {
@@ -47,6 +48,19 @@ app.listen(process.env.PORT, () => {
       process.exit(0)
   }
 })
+
+// 주기적인 authcode 삭제
+setInterval(async () => {
+  Logger.log('AuthCodeCleaner').put('Cleaning Started').out()
+  await prisma.authCode.deleteMany({
+    where: {
+      expiredAt: {
+        lte: new Date()
+      }
+    }
+  })
+  Logger.log('AuthCodeCleaner').put('Cleaning Finished').out()
+}, 1000 * 60 * 60 * 24)
 
 process.on('uncaughtException', e => {
   Logger.error('Unhandled Exception').put(e.stack).out()
