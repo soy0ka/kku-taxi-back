@@ -70,6 +70,27 @@ app.get('/me', async (req: Request, res: Response) => {
   return res.status(200).send(Formatter.format(true, 'OK', payload)).end()
 })
 
+app.get('/logout', async (req: Request, res: Response) => {
+  const token = req.headers.authorization
+  if (!token) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
+
+  const status = await prisma.tokens.deleteMany({ where: { token } })
+  if (!status) return res.status(500).send(Formatter.format(false, 'Internal Server Error')).end()
+
+  return res.status(200).send(Formatter.format(true, 'OK')).end()
+})
+
+app.post('/logout', async (req: Request, res: Response) => {
+  const { token } = req.body
+  if (!token) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
+  if (res.locals.user.id !== (await prisma.tokens.findFirst({ where: { token } }))?.userId) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
+
+  const status = await prisma.tokens.deleteMany({ where: { token } })
+  if (!status) return res.status(500).send(Formatter.format(false, 'Internal Server Error')).end()
+
+  return res.status(200).send(Formatter.format(true, 'OK')).end()
+})
+
 app.get('/mydevice', async (req: Request, res: Response) => {
   const tokens = await prisma.tokens.findMany({ where: { userId: res.locals.user.id } })
   return res.status(200).send(Formatter.format(true, 'OK', tokens)).end()
