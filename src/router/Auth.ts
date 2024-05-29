@@ -1,6 +1,4 @@
 import 'dotenv/config'
-import cors from 'cors'
-import helmet from 'helmet'
 import Mailer from '../classes/Mailer'
 import JWT from '../classes/JWT'
 import RandomName from '../classes/RandomName'
@@ -11,11 +9,6 @@ import express, { Request, Response } from 'express'
 
 const app = express.Router()
 const prisma = new PrismaClient()
-
-app.use(cors())
-app.use(helmet())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
 
 app.post('/login', async (req: Request, res: Response) => {
   const { email } = req.body
