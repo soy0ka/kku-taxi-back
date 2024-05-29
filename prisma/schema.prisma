@@ -30,14 +30,17 @@ model User {
   authCode    authCode[]
   Tokens      Tokens[]
   bankaccount BankAccount[]
+  chatrooms   ChatRoom[]    @relation("UserChatrooms")
+  Message     Message[]
+  ChatReportLog   ChatReportLog[]
 }
 
 model BankAccount {
   id       Int    @id @default(autoincrement())
   userId   Int
-  account  String 
-  holder   String 
-  bankName String 
+  account  String
+  holder   String
+  bankName String
   User     User   @relation(fields: [userId], references: [id])
 }
 
@@ -59,4 +62,36 @@ model Tokens {
   createdAt DateTime @default(now())
   expiredAt DateTime
   User      User     @relation(fields: [userId], references: [id])
+}
+
+model ChatRoom {
+  id        Int         @id @default(autoincrement())
+  name      String
+  users     User[]      @relation("UserChatrooms")
+  messages  Message[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  ReportLog ChatReportLog[]
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  content    String   @db.Text
+  senderId   Int
+  chatRoomId Int
+  createdAt  DateTime @default(now())
+  sender     User     @relation(fields: [senderId], references: [id])
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  isdeleted  Boolean  @default(false)
+}
+
+model ChatReportLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  chatRoomId Int
+  content    String
+  reason     String   @db.Text
+  createdAt  DateTime @default(now())
+  User       User     @relation(fields: [userId], references: [id])
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
 }

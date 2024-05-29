@@ -7,6 +7,7 @@ import { PrismaClient } from '@prisma/client'
 import express, { Request, Response, NextFunction } from 'express'
 
 import Auth from './router/Auth'
+import Chat from './router/Chat'
 import Notice from './router/Notice'
 import SocketIO, { Socket } from 'socket.io'
 import MiddleWare from './classes/Middleware'
@@ -25,26 +26,10 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use('*', MiddleWare.log)
 app.use('/auth', Auth)
+app.use('/chat', Chat)
 app.use('/notice', Notice)
-
-app.use('/session', async (req: Request, res: Response) => {
-  return res.status(200).send({ code: 200, message: 'OK' }).end()
-})
-
-app.use('*', async (req: Request, res: Response, next: NextFunction) => {
-  res.status(404).send({ code: 404, message: 'Not Found' })
-})
-
-server.listen(port, () => {
-  const env = process.env.ENVIRONMENT || 'development'
-  Logger.success('Express').put('Server Ready').next('port').put(port).out()
-  Logger.info('Environment').put(env).out()
-  switch (env) {
-    case 'ci':
-      Logger.warning('Environment').put('CI deteced process will be stop instanlty').out()
-      process.exit(0)
-  }
-})
+app.use('/session', async (req: Request, res: Response) => { return res.status(200).send({ code: 200, message: 'OK' }).end() })
+app.use('*', async (req: Request, res: Response, next: NextFunction) => { res.status(404).send({ code: 404, message: 'Not Found' }) })
 
 io.on('connection', (socket: Socket) => {
   Logger.info('ChatManager').put('A user connected')
@@ -64,16 +49,21 @@ io.on('connection', (socket: Socket) => {
   })
 })
 
+server.listen(port, () => {
+  const env = process.env.ENVIRONMENT || 'development'
+  Logger.info('Environment').put(env).out()
+  Logger.success('Express').put('Server Ready').next('port').put(port).out()
+  switch (env) {
+    case 'ci':
+      Logger.warning('Environment').put('CI deteced process will be stop instanlty').out()
+      process.exit(0)
+  }
+})
+
 // 주기적인 authcode 삭제
 setInterval(async () => {
   Logger.log('AuthCodeCleaner').put('Cleaning Started').out()
-  await prisma.authCode.deleteMany({
-    where: {
-      expiredAt: {
-        lte: new Date()
-      }
-    }
-  })
+  await prisma.authCode.deleteMany({ where: { expiredAt: { lte: new Date() } } })
   Logger.log('AuthCodeCleaner').put('Cleaning Finished').out()
 }, 1000 * 60 * 60)
 

@@ -15,13 +15,12 @@ export default class MiddleWare {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
     const userAgent = req.headers['user-agent']
     const deviceID = req.headers['x-device-id']
-    const platform = req.headers['x-platform']
+    // const platform = req.headers['x-platform']
 
     Logger.log(req.method).put(req.params?.[0])
       .next('ip').put(ip)
       .next('user-agent').put(userAgent)
       .next('DeviceID').put(deviceID)
-      .next('Platform').put(platform)
       .out()
     next()
   }
