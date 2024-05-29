@@ -13,15 +13,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Sex {
+  Male
+  Female
+  Other
+}
+
 model User {
-  id        Int        @id @default(autoincrement())
-  name      String
-  email     String     @unique
-  banned    Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  authCode  authCode[]
-  Tokens    Tokens[]
+  id          Int           @id @default(autoincrement())
+  name        String
+  email       String        @unique
+  banned      Boolean       @default(false)
+  sex         Sex           @default(Other)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  authCode    authCode[]
+  Tokens      Tokens[]
+  bankaccount BankAccount[]
+}
+
+model BankAccount {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  account  String 
+  holder   String 
+  bankName String 
+  User     User   @relation(fields: [userId], references: [id])
 }
 
 model authCode {

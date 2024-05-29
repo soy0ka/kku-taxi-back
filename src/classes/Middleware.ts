@@ -11,6 +11,21 @@ const db = new PrismaClient()
 
 export default class MiddleWare {
   private static firebaseApp = initializeApp({ credential: applicationDefault() })
+  public static async log (req: Request, res: Response, next: NextFunction) {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+    const userAgent = req.headers['user-agent']
+    const deviceID = req.headers['x-device-id']
+    const platform = req.headers['x-platform']
+
+    Logger.log(req.method).put(req.params?.[0])
+      .next('ip').put(ip)
+      .next('user-agent').put(userAgent)
+      .next('DeviceID').put(deviceID)
+      .next('Platform').put(platform)
+      .out()
+    next()
+  }
+
   public static async verify (req: Request, res: Response, next: NextFunction) {
     const appCheckToken = req.header('X-Firebase-AppCheck')
     if (!appCheckToken) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
