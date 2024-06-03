@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import cors from 'cors'
 import helmet from 'helmet'
-import { createServer } from 'http'
 import { Logger } from './utils/Logger'
 import { PrismaClient } from '@prisma/client'
 import express, { Request, Response, NextFunction } from 'express'
@@ -9,16 +8,55 @@ import express, { Request, Response, NextFunction } from 'express'
 import Auth from './router/Auth'
 import Chat from './router/Chat'
 import Notice from './router/Notice'
-import SocketIO, { Socket } from 'socket.io'
 import MiddleWare from './classes/Middleware'
+import { createServer } from 'http'
+import { Socket } from 'socket.io'
+import { send } from 'process'
 
 const app = express()
-const server = createServer(app)
 const prisma = new PrismaClient()
-const io = new SocketIO.Server(server)
-
 const port = process.env.PORT || 3000
+const server = createServer(app)
+const io = require('socket.io')(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+})
 
+io.on('connection', (socket: Socket) => {
+  Logger.info('WebSocket Server').put('Connected')
+    .next('id').put(socket.id)
+    .next('ip').put(socket.handshake.address)
+    .next('user-agent').put(socket.handshake.headers['user-agent'])
+    .out()
+  socket.on('joinRoom', (room: string) => {
+    socket.join(room)
+    Logger.log('ChatManager').put('A user joined').next('id').put(socket.id).next('room').put(room).out()
+  })
+
+  socket.on('messageCreate', async (message) => {
+    const dbMessage = await prisma.message.create({
+      data: {
+        content: message.content,
+        senderId: message.senderId,
+        chatRoomId: Number(message.roomId)
+      }
+    })
+    const sender = {
+      id: message.sender.id,
+      name: message.sender.name
+    }
+    io.to(message.roomId).emit('messageCreate', { ...dbMessage, sender })
+    Logger.log('ChatManager').put('Message sent').next('id').put(socket.id).next('room').put(message.roomId).next('message').put(message.content).out()
+  })
+
+  socket.on('disconnect', () => {
+    Logger.info('ChatManager').put('A user disconnected').next('id').put(socket.id).out()
+  })
+})
+
+Logger.initialize('./')
 app.use(cors())
 app.use(helmet())
 app.use(express.json())
@@ -30,24 +68,6 @@ app.use('/chat', Chat)
 app.use('/notice', Notice)
 app.use('/session', async (req: Request, res: Response) => { return res.status(200).send({ code: 200, message: 'OK' }).end() })
 app.use('*', async (req: Request, res: Response, next: NextFunction) => { res.status(404).send({ code: 404, message: 'Not Found' }) })
-
-io.on('connection', (socket: Socket) => {
-  Logger.info('ChatManager').put('A user connected')
-
-  socket.on('join', (room: string) => {
-    socket.join(room)
-    Logger.log('ChatManager').put('A user joined').next('room').put(room)
-  })
-
-  socket.on('message', (room: string, message: string) => {
-    io.to(room).emit('message', message)
-    Logger.log('ChatManager').put('Message sent').next('room').put(room).next('message').put(message)
-  })
-
-  socket.on('disconnect', () => {
-    Logger.info('ChatManager').put('A user disconnected')
-  })
-})
 
 server.listen(port, () => {
   const env = process.env.ENVIRONMENT || 'development'

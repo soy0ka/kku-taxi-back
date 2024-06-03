@@ -17,10 +17,30 @@ app.get('/room/:id', async (req: Request, res: Response) => {
   const id = req.params.id
   if (!id) return res.status(400).send(Formatter.format(false, 'Chat room ID is required')).end()
 
-  const chatRoom = await prisma.message.findMany({ where: { chatRoomId: Number(id) } })
+  const chatRoom = await prisma.message.findMany({ where: { chatRoomId: Number(id), NOT: { isdeleted: true } } })
   if (!chatRoom) return res.status(404).send(Formatter.format(false, 'Chat room not found')).end()
+  const chatRoomWithSender = []
+  for (const message of chatRoom) {
+    const sender = await prisma.user.findUnique({ where: { id: message.senderId }, select: { id: true, name: true } })
+    chatRoomWithSender.push({
+      id: message.id,
+      content: message.content,
+      isdeleted: message.isdeleted,
+      sender
+    })
+  }
 
-  return res.status(200).send(Formatter.format(true, 'OK', chatRoom)).end()
+  return res.status(200).send(Formatter.format(true, 'OK', chatRoomWithSender)).end()
+})
+
+app.post('/room/:id', async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { content } = req.body
+  if (!content) return res.status(400).send(Formatter.format(false, 'Message content is required')).end()
+  if (!id) return res.status(400).send(Formatter.format(false, 'Chat room ID is required')).end()
+
+  await prisma.message.create({ data: { chatRoomId: Number(id), content: req.body.content, senderId: res.locals.user.id } })
+  return res.status(200).send(Formatter.format(true, 'OK')).end()
 })
 
 export default app
