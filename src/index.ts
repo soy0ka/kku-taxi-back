@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import cors from 'cors'
 import helmet from 'helmet'
+import { Socket } from 'socket.io'
+import { createServer } from 'http'
 import { Logger } from './utils/Logger'
 import { PrismaClient } from '@prisma/client'
 import express, { Request, Response, NextFunction } from 'express'
@@ -8,10 +10,8 @@ import express, { Request, Response, NextFunction } from 'express'
 import Auth from './router/Auth'
 import Chat from './router/Chat'
 import Notice from './router/Notice'
+import Party from './router/Party'
 import MiddleWare from './classes/Middleware'
-import { createServer } from 'http'
-import { Socket } from 'socket.io'
-import { send } from 'process'
 
 const app = express()
 const prisma = new PrismaClient()
@@ -66,6 +66,7 @@ app.use('*', MiddleWare.log)
 app.use('/auth', Auth)
 app.use('/chat', Chat)
 app.use('/notice', Notice)
+app.use('/party', Party)
 app.use('/session', async (req: Request, res: Response) => { return res.status(200).send({ code: 200, message: 'OK' }).end() })
 app.use('*', async (req: Request, res: Response, next: NextFunction) => { res.status(404).send({ code: 404, message: 'Not Found' }) })
 

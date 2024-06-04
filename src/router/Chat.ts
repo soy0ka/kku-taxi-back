@@ -25,6 +25,7 @@ app.get('/room/:id', async (req: Request, res: Response) => {
     chatRoomWithSender.push({
       id: message.id,
       content: message.content,
+      createdAt: message.createdAt,
       isdeleted: message.isdeleted,
       sender
     })
