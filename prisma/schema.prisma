@@ -67,6 +67,7 @@ model ChatRoom {
   messages  Message[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  isdeleted Boolean         @default(false)
   ReportLog ChatReportLog[]
   Party     Party[]
 }

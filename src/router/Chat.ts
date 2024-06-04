@@ -9,8 +9,18 @@ const prisma = new PrismaClient()
 
 app.use(MiddleWare.auth)
 app.get('/me', async (req: Request, res: Response) => {
-  const myChatRooms = await prisma.chatRoom.findMany({ where: { users: { some: { id: res.locals.user.id } } } })
-  return res.status(200).send(Formatter.format(true, 'OK', myChatRooms)).end()
+  const myChatRooms = await prisma.chatRoom.findMany({ where: { users: { some: { id: res.locals.user.id } }, NOT: { isdeleted: true } } })
+  const FormattedChatroom = []
+  for (const chatRoom of myChatRooms) {
+    const party = await prisma.party.findFirst({ where: { chatRoomId: chatRoom.id } })
+    if (!party) continue
+    FormattedChatroom.push({
+      id: chatRoom.id,
+      name: chatRoom.name,
+      party: { ...party, from: await prisma.place.findUnique({ where: { id: party.fromPlaceId } }), to: await prisma.place.findUnique({ where: { id: party.toPlaceId } }) }
+    })
+  }
+  return res.status(200).send(Formatter.format(true, 'OK', FormattedChatroom)).end()
 })
 
 app.get('/room/:id', async (req: Request, res: Response) => {
