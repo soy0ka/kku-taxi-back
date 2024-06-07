@@ -54,9 +54,12 @@ app.post('/code', async (req: Request, res: Response) => {
 
 app.use(MiddleWare.auth)
 app.get('/me', async (req: Request, res: Response) => {
+  const textId = res.locals.user.email.split('@')[0]
   const payload = {
     id: res.locals.user.id,
     name: res.locals.user.name,
+    email: res.locals.user.email,
+    textId,
     banned: Boolean(res.locals.user.banned)
   }
 
