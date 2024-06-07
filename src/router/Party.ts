@@ -10,8 +10,13 @@ const prisma = new PrismaClient()
 
 app.use(MiddleWare.auth)
 app.get('/', async (req: Request, res: Response) => {
-  const { direction } = req.query
+  const { direction, page = '1', size = '10' } = req.query
+  const pageNumber = parseInt(page as string, 10) || 1
+  const pageSize = parseInt(size as string, 10) || 10
+  const skip = (pageNumber - 1) * pageSize
+
   let partyConditions = { departure: { gte: new Date() }, toPlaceId: {} }
+
   if (direction === 'toSchool') {
     // 학교 방향 파티 | 도착지 id가 3,4,5,6,7,8,9 인 파티
     partyConditions = { ...partyConditions, toPlaceId: { in: [3, 4, 5, 6, 7, 8, 9] } }
@@ -19,14 +24,22 @@ app.get('/', async (req: Request, res: Response) => {
     // 시내 방향 파티 | 도착지 id가 1,2 인 파티
     partyConditions = { ...partyConditions, toPlaceId: { in: [1, 2] } }
   }
+
   const parties = await prisma.party.findMany({
     where: partyConditions,
+    orderBy: { departure: 'asc' },
+    skip,
+    take: pageSize,
     include: {
       _count: {
         select: { partyMemberships: true }
-      }
+      },
+      fromPlace: true,
+      toPlace: true,
+      owner: { select: { id: true, name: true, email: true } }
     }
   })
+
   // 추가적으로 partymemberships 테이블의 partyId와 같은 컬럼수가 party.maxSize보다 작은 파티만 반환 (인원수가 충족되지 못한 파티만 반환)
   const filteredParties = parties.filter(party => party._count.partyMemberships < party.maxSize)
   return res.status(200).send(Formatter.format(true, 'OK', filteredParties)).end()
