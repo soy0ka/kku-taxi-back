@@ -1,8 +1,8 @@
-import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import 'dotenv/config'
+import express, { Request, Response } from 'express'
 import MiddleWare from '../classes/Middleware'
 import Formatter from '../classes/ResponseFormat'
-import express, { Request, Response } from 'express'
 
 const app = express.Router()
 const prisma = new PrismaClient()
@@ -20,6 +20,7 @@ app.get('/me', async (req: Request, res: Response) => {
       party: { ...party, from: await prisma.place.findUnique({ where: { id: party.fromPlaceId } }), to: await prisma.place.findUnique({ where: { id: party.toPlaceId } }) }
     })
   }
+
   return res.status(200).send(Formatter.format(true, 'OK', FormattedChatroom)).end()
 })
 
@@ -31,13 +32,18 @@ app.get('/room/:id', async (req: Request, res: Response) => {
   if (!chatRoom) return res.status(404).send(Formatter.format(false, 'Chat room not found')).end()
   const chatRoomWithSender = []
   for (const message of chatRoom) {
-    const sender = await prisma.user.findUnique({ where: { id: message.senderId }, select: { id: true, name: true } })
+    const sender = await prisma.user.findUnique({ where: { id: message.senderId }, select: { id: true, name: true, email: true } })
+    if (!sender) continue
     chatRoomWithSender.push({
       id: message.id,
       content: message.content,
       createdAt: message.createdAt,
       isdeleted: message.isdeleted,
-      sender
+      sender: {
+        id: sender.id,
+        name: sender.name,
+        textId: sender.email.split('@')[0]
+      }
     })
   }
 
