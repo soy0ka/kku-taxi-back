@@ -1,9 +1,9 @@
-import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
-import MiddleWare from '../classes/Middleware'
-import Formatter from '../classes/ResponseFormat'
+import 'dotenv/config'
 import express, { Request, Response } from 'express'
+import MiddleWare from '../classes/Middleware'
 import generate from '../classes/RandomName'
+import Formatter from '../classes/ResponseFormat'
 
 const app = express.Router()
 const prisma = new PrismaClient()
