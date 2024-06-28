@@ -45,7 +45,8 @@ io.on('connection', (socket: Socket) => {
     })
     const sender = {
       id: message.sender.id,
-      name: message.sender.name
+      name: message.sender.name,
+      textId: message.sender.textId
     }
     io.to(message.roomId).emit('messageCreate', { ...dbMessage, sender })
     Logger.log('ChatManager').put('Message sent').next('id').put(socket.id).next('room').put(message.roomId).next('message').put(message.content).out()
