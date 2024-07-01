@@ -60,4 +60,19 @@ app.post('/room/:id', async (req: Request, res: Response) => {
   return res.status(200).send(Formatter.format(true, 'OK')).end()
 })
 
+app.post('/report', async (req: Request, res: Response) => {
+  const { id, reason } = req.body
+  if (!id || !reason) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
+  const message = await prisma.message.findUnique({ where: { id: Number(id) } })
+  console.log(message)
+  await prisma.chatReportLog.create({
+    data: {
+      chatRoomId: message?.chatRoomId ?? 0,
+      content: message?.content || '',
+      reason,
+      userId: res.locals.user.id
+    }
+  })
+})
+
 export default app
