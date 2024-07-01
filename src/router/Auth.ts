@@ -39,7 +39,7 @@ app.post('/code', async (req: Request, res: Response) => {
 
   if (dbcode.expiredAt < new Date()) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
   const token = JWT.sign(dbcode.User.id)
-  await prisma.authCode.delete({ where: { id: dbcode.id } })
+  if (dbcode.userId !== 9999) await prisma.authCode.delete({ where: { id: dbcode.id } })
   await prisma.tokens.create({
     data: {
       device: String(deviceID),
