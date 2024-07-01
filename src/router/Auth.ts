@@ -1,11 +1,11 @@
-import 'dotenv/config'
-import Mailer from '../classes/Mailer'
-import JWT from '../classes/JWT'
-import RandomName from '../classes/RandomName'
 import { PrismaClient } from '@prisma/client'
-import MiddleWare from '../classes/Middleware'
-import Formatter from '../classes/ResponseFormat'
+import 'dotenv/config'
 import express, { Request, Response } from 'express'
+import JWT from '../classes/JWT'
+import Mailer from '../classes/Mailer'
+import MiddleWare from '../classes/Middleware'
+import RandomName from '../classes/RandomName'
+import Formatter from '../classes/ResponseFormat'
 
 const app = express.Router()
 const prisma = new PrismaClient()
@@ -90,6 +90,14 @@ app.post('/logout', async (req: Request, res: Response) => {
 app.get('/mydevice', async (req: Request, res: Response) => {
   const tokens = await prisma.tokens.findMany({ where: { userId: res.locals.user.id } })
   return res.status(200).send(Formatter.format(true, 'OK', tokens)).end()
+})
+
+app.post('/notification', async (req: Request, res: Response) => {
+  const { token } = req.body
+  const authToken = req.headers.authorization?.split('Bearer ')[1]
+  if (!token) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
+
+  await prisma.tokens.updateMany({ where: { token: authToken }, data: { deviceToken: token } })
 })
 
 export default app

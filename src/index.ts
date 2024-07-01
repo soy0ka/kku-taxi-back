@@ -1,17 +1,18 @@
-import 'dotenv/config'
-import cors from 'cors'
-import helmet from 'helmet'
-import { Socket } from 'socket.io'
-import { createServer } from 'http'
-import { Logger } from './utils/Logger'
 import { PrismaClient } from '@prisma/client'
-import express, { Request, Response, NextFunction } from 'express'
+import cors from 'cors'
+import 'dotenv/config'
+import express, { NextFunction, Request, Response } from 'express'
+import helmet from 'helmet'
+import { createServer } from 'http'
+import { Socket } from 'socket.io'
+import Notification from './classes/PushNotification'
+import { Logger } from './utils/Logger'
 
+import MiddleWare from './classes/Middleware'
 import Auth from './router/Auth'
 import Chat from './router/Chat'
 import Notice from './router/Notice'
 import Party from './router/Party'
-import MiddleWare from './classes/Middleware'
 
 const app = express()
 const prisma = new PrismaClient()
@@ -75,6 +76,7 @@ server.listen(port, () => {
   const env = process.env.ENVIRONMENT || 'development'
   Logger.info('Environment').put(env).out()
   Logger.success('Express').put('Server Ready').next('port').put(port).out()
+  Notification.send('ExponentPushToken[BfTfxFCjwrExhffB3ZHz76]', 'Server Started')
   switch (env) {
     case 'ci':
       Logger.warning('Environment').put('CI deteced process will be stop instanlty').out()

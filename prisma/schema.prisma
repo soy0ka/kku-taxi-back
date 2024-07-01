@@ -50,14 +50,15 @@ model authCode {
 }
 
 model Tokens {
-  id        Int      @id @default(autoincrement())
-  token     String
-  device    String
-  platform  String
-  userId    Int
-  createdAt DateTime @default(now())
-  expiredAt DateTime
-  User      User     @relation(fields: [userId], references: [id])
+  id          Int      @id @default(autoincrement())
+  token       String
+  device      String
+  platform    String
+  userId      Int
+  createdAt   DateTime @default(now())
+  expiredAt   DateTime
+  deviceToken String?
+  User        User     @relation(fields: [userId], references: [id])
 }
 
 model ChatRoom {
