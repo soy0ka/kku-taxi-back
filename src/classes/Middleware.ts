@@ -46,7 +46,7 @@ export default class MiddleWare {
       const decoded = JWT.verify(token)
       if (!decoded || !decoded.ok) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
 
-      const user = await db.user.findUnique({ where: { id: decoded.id } })
+      const user = await db.user.findUnique({ select: { id: true, name: true, email: true, banned: true, bankaccount: true }, where: { id: decoded.id } })
       if (!user) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
       if (user.banned) return res.status(401).json(Formatter.format(false, 'Banned')).end()
 

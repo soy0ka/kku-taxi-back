@@ -60,10 +60,23 @@ app.get('/me', async (req: Request, res: Response) => {
     name: res.locals.user.name,
     email: res.locals.user.email,
     textId,
-    banned: Boolean(res.locals.user.banned)
+    banned: Boolean(res.locals.user.banned),
+    account: res.locals.user.bankaccount[0] || null
   }
-
+  console.log(payload)
   return res.status(200).send(Formatter.format(true, 'OK', payload)).end()
+})
+
+app.post('/account', async (req: Request, res: Response) => {
+  const { number, bank, holder } = req.body
+  if (!number || !bank || !holder) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
+  try {
+    await prisma.bankAccount.deleteMany({ where: { userId: res.locals.user.id } })
+    await prisma.user.update({ where: { id: res.locals.user.id }, data: { bankaccount: { create: { account: number, bankName: bank, holder } } } })
+    return res.status(200).send(Formatter.format(true, 'OK')).end()
+  } catch (error) {
+    return res.status(500).send(Formatter.format(false, 'Internal Server Error')).end()
+  }
 })
 
 app.get('/logout', async (req: Request, res: Response) => {
