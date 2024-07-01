@@ -20,7 +20,7 @@ app.post('/login', async (req: Request, res: Response) => {
   if (user.banned) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
 
   const code = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
-  Mailer.send(email, '[쿠택시] 인증번호를 보내드립니다', `인증번호는 ${code}입니다 요청한 적 없으시다면 무시해주시길 바랍니다`)
+  Mailer.sendCode(email, code)
 
   const expiredAt = new Date(new Date().getTime() + 1000 * 60 * 5)
   await prisma.authCode.create({ data: { code, expiredAt, User: { connect: { id: user.id } } } })
