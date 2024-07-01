@@ -42,4 +42,5 @@ jobs:
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
             yarn install
             yarn build
+            npx prisma generate
             pm2 restart ${{ secrets.PM2_PROCESS_NUM }}
