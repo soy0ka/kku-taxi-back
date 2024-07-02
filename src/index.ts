@@ -50,13 +50,15 @@ io.on('connection', (socket: Socket) => {
       textId: message.sender.textId
     }
     io.to(message.roomId).emit('messageCreate', { ...dbMessage, sender })
-    for (const user of message.roomUsers) {
+    const room = await prisma.chatRoom.findUnique({ select: { users: true }, where: { id: Number(message.roomId) } })
+    Logger.log('ChatManager').put('Message sent').next('id').put(socket.id).next('room').put(message.roomId).next('message').put(message.content).out()
+    if (!room) return
+    for (const user of room.users) {
       if (user.id === message.senderId) continue
       const token = await prisma.tokens.findFirst({ where: { userId: user.id } })
       if (!token?.deviceToken) continue
       Notification.send(token?.deviceToken, '메시지가 도착했습니다', message.content)
     }
-    Logger.log('ChatManager').put('Message sent').next('id').put(socket.id).next('room').put(message.roomId).next('message').put(message.content).out()
   })
 
   socket.on('disconnect', () => {
