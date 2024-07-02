@@ -50,6 +50,12 @@ io.on('connection', (socket: Socket) => {
       textId: message.sender.textId
     }
     io.to(message.roomId).emit('messageCreate', { ...dbMessage, sender })
+    for (const user of message.roomUsers) {
+      if (user.id === message.senderId) continue
+      const token = await prisma.tokens.findFirst({ where: { userId: user.id } })
+      if (!token?.deviceToken) continue
+      Notification.send(token?.deviceToken, '메시지가 도착했습니다', message.content)
+    }
     Logger.log('ChatManager').put('Message sent').next('id').put(socket.id).next('room').put(message.roomId).next('message').put(message.content).out()
   })
 
@@ -76,7 +82,7 @@ server.listen(port, () => {
   const env = process.env.ENVIRONMENT || 'development'
   Logger.info('Environment').put(env).out()
   Logger.success('Express').put('Server Ready').next('port').put(port).out()
-  Notification.send('ExponentPushToken[BfTfxFCjwrExhffB3ZHz76]', 'Server Started')
+
   switch (env) {
     case 'ci':
       Logger.warning('Environment').put('CI deteced process will be stop instanlty').out()

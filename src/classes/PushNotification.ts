@@ -1,9 +1,9 @@
 import { post } from 'superagent'
-const send = async (expoPushToken: string, message: string) => {
+const send = async (expoPushToken: string, title: string, message: string) => {
   const body = {
     to: expoPushToken,
     sound: 'default',
-    title: 'Test Notification',
+    title,
     body: message,
     data: { message }
   }
