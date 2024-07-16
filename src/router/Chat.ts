@@ -39,6 +39,7 @@ app.get('/room/:id', async (req: Request, res: Response) => {
       content: message.content,
       createdAt: message.createdAt,
       isdeleted: message.isdeleted,
+      isSystem: message.isSystem,
       sender: {
         id: sender.id,
         name: sender.name,

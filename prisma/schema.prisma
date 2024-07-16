@@ -83,6 +83,7 @@ model Message {
   sender     User     @relation(fields: [senderId], references: [id])
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
   isdeleted  Boolean  @default(false)
+  isSystem   Boolean  @default(false)
 }
 
 model ChatReportLog {
