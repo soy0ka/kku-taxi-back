@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import 'dotenv/config'
 import express, { Request, Response } from 'express'
+import { v4 } from 'uuid'
 import JWT from '../classes/JWT'
 import Mailer from '../classes/Mailer'
 import MiddleWare from '../classes/Middleware'
@@ -15,7 +16,15 @@ app.post('/login', async (req: Request, res: Response) => {
   if (!email) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
   if (!Mailer.MailRegex.test(email)) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
 
-  const user = await prisma.user.findUnique({ where: { email } }) || await prisma.user.create({ data: { email, name: RandomName() } })
+  // uuid가 이미 존재할경우 다시 생성 하는 로직
+  while (true) {
+    const uuid = v4()
+    if (!await prisma.user.findFirst({ where: { uuid } })) {
+      await prisma.user.create({ data: { email, uuid, name: RandomName() } })
+      break
+    }
+  }
+  const user = await prisma.user.findFirst({ where: { email } })
   if (!user) return res.status(500).send(Formatter.format(false, 'Internal Server Error')).end()
   if (user.banned) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
 

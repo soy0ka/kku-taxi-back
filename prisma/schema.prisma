@@ -16,6 +16,7 @@ enum Sex {
 model User {
   id              Int               @id @default(autoincrement())
   name            String
+  uuid            String            @unique
   email           String            @unique
   banned          Boolean           @default(false)
   sex             Sex               @default(Other)
