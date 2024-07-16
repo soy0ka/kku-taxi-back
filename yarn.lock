@@ -887,13 +887,6 @@ buffer-equal-constant-time@1.0.1:
   resolved "https://registry.npmjs.org/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz"
   integrity sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==
 
-builtins@^5.0.1:
-  version "5.1.0"
-  resolved "https://registry.npmjs.org/builtins/-/builtins-5.1.0.tgz"
-  integrity sha512-SW9lzGTLvWTP1AY8xeAMZimqDrIaSdLQUcVr9DMef51niJ022Ri87SwRRKYm4A6iHfkPaiVUu/Duw2Wc4J7kKg==
-  dependencies:
-    semver "^7.0.0"
-
 bytes@3.1.2:
   version "3.1.2"
   resolved "https://registry.npmjs.org/bytes/-/bytes-3.1.2.tgz"
@@ -1440,14 +1433,6 @@ eslint-module-utils@^2.8.0:
   dependencies:
     debug "^3.2.7"
 
-eslint-plugin-es@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.npmjs.org/eslint-plugin-es/-/eslint-plugin-es-3.0.1.tgz"
-  integrity sha512-GUmAsJaN4Fc7Gbtl8uOBlayo2DqhwWvEzykMHSCZHU3XdJ+NSzzZcVhXh3VxX5icqQ+oQdIEawXX8xkR3mIFmQ==
-  dependencies:
-    eslint-utils "^2.0.0"
-    regexpp "^3.0.0"
-
 eslint-plugin-es@^4.1.0:
   version "4.1.0"
   resolved "https://registry.npmjs.org/eslint-plugin-es/-/eslint-plugin-es-4.1.0.tgz"
@@ -1479,28 +1464,15 @@ eslint-plugin-import@^2.25.2:
     semver "^6.3.1"
     tsconfig-paths "^3.15.0"
 
-eslint-plugin-n@15.2.4:
-  version "15.2.4"
-  resolved "https://registry.npmjs.org/eslint-plugin-n/-/eslint-plugin-n-15.2.4.tgz"
-  integrity sha512-tjnVMv2fiXYMnuiIFI8QMtyUFI42SckEEWvi8h68SWGWshfqO6SSCASy24dGMGAiy7NUk6DZt90DM0iNUsmQ5w==
+eslint-plugin-n@^14.0.0:
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-14.0.0.tgz#aa7944f5b1fd69cf64ecb1ddd1a4762bb0f4f352"
+  integrity sha512-mNwplPLsbaKhHyA0fa/cy8j+oF6bF6l81hzBTWa6JOvPcMNAuIogk2ih6d9tYvWYzyUG+7ZFeChqbzdFpg2QrQ==
   dependencies:
-    builtins "^5.0.1"
     eslint-plugin-es "^4.1.0"
     eslint-utils "^3.0.0"
     ignore "^5.1.1"
-    is-core-module "^2.9.0"
-    minimatch "^3.1.2"
-    resolve "^1.10.1"
-    semver "^7.3.7"
-
-eslint-plugin-node@^11.1.0:
-  version "11.1.0"
-  resolved "https://registry.npmjs.org/eslint-plugin-node/-/eslint-plugin-node-11.1.0.tgz"
-  integrity sha512-oUwtPJ1W0SKD0Tr+wqu92c5xuCeQqB3hSCHasn/ZgjFdA9iDGNkNf2Zi9ztY7X+hNuMib23LNGRm6+uN+KLE3g==
-  dependencies:
-    eslint-plugin-es "^3.0.0"
-    eslint-utils "^2.0.0"
-    ignore "^5.1.1"
+    is-core-module "^2.3.0"
     minimatch "^3.0.4"
     resolve "^1.10.1"
     semver "^6.1.0"
@@ -2292,12 +2264,19 @@ is-callable@^1.1.3, is-callable@^1.1.4, is-callable@^1.2.7:
   resolved "https://registry.npmjs.org/is-callable/-/is-callable-1.2.7.tgz"
   integrity sha512-1BC0BVFhS/p0qtw6enp8e+8OD0UrK0oFLztSjNzhcKA3WDuJxxAPXzPuPtKkjEY9UUoEWlX/8fgKeu2S8i9JTA==
 
-is-core-module@^2.13.0, is-core-module@^2.13.1, is-core-module@^2.9.0:
+is-core-module@^2.13.0, is-core-module@^2.13.1:
   version "2.13.1"
   resolved "https://registry.npmjs.org/is-core-module/-/is-core-module-2.13.1.tgz"
   integrity sha512-hHrIjvZsftOsvKSn2TRYl63zvxsgE0K+0mYMoH6gD4omR5IWB2KynivBQczo3+wF1cCkjzvptnI9Q0sPU66ilw==
   dependencies:
     hasown "^2.0.0"
+
+is-core-module@^2.3.0:
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.14.0.tgz#43b8ef9f46a6a08888db67b1ffd4ec9e3dfd59d1"
+  integrity sha512-a5dFJih5ZLYlRtDc0dZWP7RiKr6xIKzmn/oAYCDvdLThadVgyJwlaoQPmRtMSpz+rk0OGAgIu+TcM9HUF0fk1A==
+  dependencies:
+    hasown "^2.0.2"
 
 is-data-view@^1.0.1:
   version "1.0.1"
@@ -3367,7 +3346,7 @@ semver@^6.1.0, semver@^6.3.1:
   resolved "https://registry.npmjs.org/semver/-/semver-6.3.1.tgz"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
-semver@^7.0.0, semver@^7.1.2, semver@^7.3.7, semver@^7.5.4:
+semver@^7.1.2, semver@^7.3.7, semver@^7.5.4:
   version "7.6.2"
   resolved "https://registry.npmjs.org/semver/-/semver-7.6.2.tgz"
   integrity sha512-FNAIBWCx9qcRhoHcgcJ0gvU7SN1lYU2ZXuSfl04bSC5OpvDHFyJCjdNHomPXxjQlCBU67YW64PzY7/VIEH7F2w==
