@@ -2577,9 +2577,9 @@ klaw@^3.0.0:
     graceful-fs "^4.1.9"
 
 korean-regexp@^1.0.9:
-  version "1.0.11"
-  resolved "https://registry.npmjs.org/korean-regexp/-/korean-regexp-1.0.11.tgz"
-  integrity sha512-IRpTbuoUhSjLkOHrlAj4QZMF8fDEWt/7r2lTXNPwLHbLDIDgqCPOkCfdGjmcEYA7p5XdqRQT9loy/VwpaLrtZQ==
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/korean-regexp/-/korean-regexp-1.0.12.tgz#c51942ec3afb34c5160736a554243908e0e4a10a"
+  integrity sha512-j6wF9gnheluqSMQ0H4dDTrWR2U7POrnmzUWWPRmwwp69FOQFqu331/Q3N/WCmhyDUW0cRPzCE3RwY3auXEtdgg==
 
 levenshtein@*:
   version "1.0.5"
