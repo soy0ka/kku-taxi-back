@@ -74,4 +74,23 @@ app.post('/create', async (req: Request, res: Response) => {
   }
 })
 
+app.get('/join/:id', async (req: Request, res: Response) => {
+  const { id } = req.params
+  if (!id) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
+  const party = await prisma.party.findUnique({ where: { id: parseInt(id, 10) }, include: { _count: { select: { partyMemberships: true } } } })
+  if (!party) return res.status(404).send(Formatter.format(false, 'Party not found')).end()
+  const isJoined = await prisma.partyMembership.findFirst({ where: { partyId: party.id, userId: res.locals.user.id } })
+  if (isJoined) return res.status(400).send(Formatter.format(false, 'Already joined')).end()
+  if (party._count.partyMemberships >= party.maxSize) return res.status(400).send(Formatter.format(false, 'Party is full')).end()
+  try {
+    await prisma.partyMembership.create({ data: { partyId: party.id, userId: res.locals.user.id } })
+    const room = await prisma.chatRoom.update({ where: { id: party.chatRoomId }, data: { users: { connect: { id: res.locals.user.id } } } })
+    await prisma.message.create({ data: { content: `@${res.locals.user.name}님이 파티에 참여했습니다`, senderId: res.locals.user.id, chatRoomId: room.id, isSystem: true } })
+    return res.status(200).send(Formatter.format(true, 'OK')).end()
+  } catch (e) {
+    console.error(e)
+    return res.status(500).send(Formatter.format(false, 'Internal server error')).end()
+  }
+})
+
 export default app
