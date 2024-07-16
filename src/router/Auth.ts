@@ -72,7 +72,6 @@ app.get('/me', async (req: Request, res: Response) => {
     banned: Boolean(res.locals.user.banned),
     account: res.locals.user.bankaccount[0] || null
   }
-  console.log(payload)
   return res.status(200).send(Formatter.format(true, 'OK', payload)).end()
 })
 
