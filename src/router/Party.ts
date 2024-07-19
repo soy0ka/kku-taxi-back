@@ -86,7 +86,7 @@ app.get('/join/:id', async (req: Request, res: Response) => {
   try {
     await prisma.partyMembership.create({ data: { partyId: party.id, userId: res.locals.user.id } })
     const room = await prisma.chatRoom.update({ where: { id: party.chatRoomId }, data: { users: { connect: { id: res.locals.user.id } } } })
-    emitEvent('joinRoom', {
+    emitEvent('joinParty', {
       room: Number(room.id),
       user: res.locals.user
     })
