@@ -13,27 +13,26 @@ const prisma = new PrismaClient()
 
 app.post('/login', async (req: Request, res: Response) => {
   const { email } = req.body
-  if (!email) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
-  if (!Mailer.MailRegex.test(email)) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
-  const usercheck = await prisma.user.findFirst({ where: { email } })
-  if (!usercheck) {
-    while (true) {
-      const uuid = v4()
-      if (!await prisma.user.findFirst({ where: { uuid } })) {
-        await prisma.user.create({ data: { email, uuid, name: RandomName() } })
-        break
-      }
-    }
+  if (!email) return res.status(400).send(Formatter.format(false, 'Email is required')).end()
+  if (!Mailer.MailRegex.test(email)) return res.status(400).send(Formatter.format(false, 'Invalid email format')).end()
+
+  let user = await prisma.user.findFirst({ where: { email } })
+  if (!user) {
+    let uuid
+    do {
+      uuid = v4()
+    } while (await prisma.user.findFirst({ where: { uuid } }))
+    user = await prisma.user.create({ data: { email, uuid, name: RandomName() } })
   }
-  const user = await prisma.user.findFirst({ where: { email } })
-  if (!user) return res.status(404).send(Formatter.format(false, 'Not Found')).end()
-  if (user.banned) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
+
+  if (user.banned) return res.status(403).send(Formatter.format(false, 'User is banned')).end()
 
   const code = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
   Mailer.sendCode(email, code)
 
-  const expiredAt = new Date(new Date().getTime() + 1000 * 60 * 5)
-  await prisma.authCode.create({ data: { code, expiredAt, User: { connect: { id: user.id } } } })
+  const expiredAt = new Date(Date.now() + 1000 * 60 * 5)
+  await prisma.authCode.create({ data: { code, expiredAt, userId: user.id } })
+
   return res.status(200).send(Formatter.format(true, 'OK', { validtime: expiredAt })).end()
 })
 
