@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import 'dotenv/config'
 import express, { Request, Response } from 'express'
+import { emitEvent } from '../classes/ChatManager'
 import MiddleWare from '../classes/Middleware'
 import generate from '../classes/RandomName'
 import Formatter from '../classes/ResponseFormat'
@@ -85,7 +86,10 @@ app.get('/join/:id', async (req: Request, res: Response) => {
   try {
     await prisma.partyMembership.create({ data: { partyId: party.id, userId: res.locals.user.id } })
     const room = await prisma.chatRoom.update({ where: { id: party.chatRoomId }, data: { users: { connect: { id: res.locals.user.id } } } })
-    await prisma.message.create({ data: { content: `@${res.locals.user.name}님이 파티에 참여했습니다`, senderId: res.locals.user.id, chatRoomId: room.id, isSystem: true } })
+    emitEvent('joinRoom', {
+      room: Number(room.id),
+      user: res.locals.user
+    })
     return res.status(200).send(Formatter.format(true, 'OK')).end()
   } catch (e) {
     console.error(e)

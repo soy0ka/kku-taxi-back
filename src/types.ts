@@ -1,6 +1,6 @@
 export interface Message {
   content: string
   senderName: string
-  senderProfileImage: string
+  senderProfileImage: string | null
   timestamp: string
 }
