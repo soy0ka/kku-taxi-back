@@ -4,8 +4,7 @@ import 'dotenv/config'
 import express, { NextFunction, Request, Response } from 'express'
 import helmet from 'helmet'
 import { createServer } from 'http'
-import { Socket } from 'socket.io'
-import Notification from './classes/PushNotification'
+import { initializeSocket } from './classes/ChatManager'
 import { Logger } from './utils/Logger'
 
 import MiddleWare from './classes/Middleware'
@@ -18,53 +17,7 @@ const app = express()
 const prisma = new PrismaClient()
 const port = process.env.PORT || 3000
 const server = createServer(app)
-const io = require('socket.io')(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
-})
-
-io.on('connection', (socket: Socket) => {
-  Logger.info('WebSocket Server').put('Connected')
-    .next('id').put(socket.id)
-    .next('ip').put(socket.handshake.address)
-    .next('user-agent').put(socket.handshake.headers['user-agent'])
-    .out()
-  socket.on('joinRoom', (room: string) => {
-    socket.join(room)
-    Logger.log('ChatManager').put('A user joined').next('id').put(socket.id).next('room').put(room).out()
-  })
-
-  socket.on('messageCreate', async (message) => {
-    const dbMessage = await prisma.message.create({
-      data: {
-        content: message.content,
-        senderId: message.senderId,
-        chatRoomId: Number(message.roomId)
-      }
-    })
-    const sender = {
-      id: message.sender.id,
-      name: message.sender.name,
-      textId: message.sender.textId
-    }
-    io.to(message.roomId).emit('messageCreate', { ...dbMessage, sender })
-    const room = await prisma.chatRoom.findUnique({ select: { users: true }, where: { id: Number(message.roomId) } })
-    Logger.log('ChatManager').put('Message sent').next('id').put(socket.id).next('room').put(message.roomId).next('message').put(message.content).out()
-    if (!room) return
-    for (const user of room.users) {
-      if (user.id === message.senderId) continue
-      const token = await prisma.tokens.findFirst({ where: { userId: user.id } })
-      if (!token?.deviceToken) continue
-      Notification.send(token?.deviceToken, '메시지가 도착했습니다', message.content)
-    }
-  })
-
-  socket.on('disconnect', () => {
-    Logger.info('ChatManager').put('A user disconnected').next('id').put(socket.id).out()
-  })
-})
+initializeSocket(server)
 
 Logger.initialize('./')
 app.use(cors())
@@ -84,12 +37,6 @@ server.listen(port, () => {
   const env = process.env.ENVIRONMENT || 'development'
   Logger.info('Environment').put(env).out()
   Logger.success('Express').put('Server Ready').next('port').put(port).out()
-
-  switch (env) {
-    case 'ci':
-      Logger.warning('Environment').put('CI deteced process will be stop instanlty').out()
-      process.exit(0)
-  }
 })
 
 // 주기적인 authcode 삭제

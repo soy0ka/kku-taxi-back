@@ -1,28 +1,69 @@
+// socket.js
+import { PrismaClient } from '@prisma/client'
+import { Server as HttpServer } from 'http'
+import { Server } from 'socket.io'
 import { Logger } from '../utils/Logger'
-import { Server as HTTPServer } from 'http'
-import { Server as SocketIOServer, Socket } from 'socket.io'
+import Notification from './PushNotification'
 
-const setupSocketServer = (server: HTTPServer) => {
-  const io = new SocketIOServer(server)
+const prisma = new PrismaClient()
+let io: Server
+export const initializeSocket = (server: HttpServer): Server => {
+  io = new Server(server, {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST']
+    }
+  })
 
-  io.on('connection', (socket: Socket) => {
-    Logger.info('ChatManager').put('A user connected')
-    socket.on('join', (room: string) => {
+  io.on('connection', (socket) => {
+    Logger.info('WebSocket Server').put('Connected')
+      .next('id').put(socket.id)
+      .next('ip').put(socket.handshake.address)
+      .next('user-agent').put(socket.handshake.headers['user-agent'])
+      .out()
+
+    socket.on('joinRoom', (room) => {
       socket.join(room)
-      Logger.log('ChatManager').put('A user joined').next('room').put(room)
+      Logger.log('ChatManager').put('A user joined').next('id').put(socket.id).next('room').put(room).out()
     })
 
-    socket.on('message', (room: string, message: string) => {
-      io.to(room).emit('message', message)
-      Logger.log('ChatManager').put('Message sent').next('room').put(room).next('message').put(message)
+    socket.on('messageCreate', async (message) => {
+      const dbMessage = await prisma.message.create({
+        data: {
+          content: message.content,
+          senderId: message.senderId,
+          chatRoomId: Number(message.roomId)
+        }
+      })
+      const sender = {
+        id: message.sender.id,
+        name: message.sender.name,
+        textId: message.sender.textId
+      }
+      io.to(message.roomId).emit('messageCreate', { ...dbMessage, sender })
+      const room = await prisma.chatRoom.findUnique({ select: { users: true }, where: { id: Number(message.roomId) } })
+      Logger.log('ChatManager').put('Message sent').next('id').put(socket.id).next('room').put(message.roomId).next('message').put(message.content).out()
+      if (!room) return
+      for (const user of room.users) {
+        if (user.id === message.senderId) continue
+        const token = await prisma.tokens.findFirst({ where: { userId: user.id } })
+        if (!token?.deviceToken) continue
+        Notification.send(token?.deviceToken, '메시지가 도착했습니다', message.content)
+      }
     })
 
     socket.on('disconnect', () => {
-      Logger.info('ChatManager').put('A user disconnected')
+      Logger.info('ChatManager').put('A user disconnected').next('id').put(socket.id).out()
     })
   })
 
   return io
 }
 
-export { setupSocketServer }
+export const emitEvent = (event: string, data: any) => {
+  if (io) {
+    io.emit(event, data)
+  } else {
+    Logger.error('ChatManager').put('Socket is not initialized').out()
+  }
+}
