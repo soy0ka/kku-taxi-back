@@ -58,7 +58,7 @@ app.post('/create', async (req: Request, res: Response) => {
         name: `${name} 택시팟`,
         description,
         departure: date,
-        maxSize,
+        maxSize: maxSize + 1,
         chatRoom: { create: { name: `${name} 채팅방`, users: { connect: { id: res.locals.user.id } } } },
         fromPlace: { connect: { id: departure } },
         toPlace: { connect: { id: arrival } },
