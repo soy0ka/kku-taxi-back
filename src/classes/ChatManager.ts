@@ -46,9 +46,17 @@ export const initializeSocket = (server: HttpServer): Server => {
       if (!room) return
       for (const user of room.users) {
         if (user.id === message.senderId) continue
-        const token = await prisma.tokens.findFirst({ where: { userId: user.id } })
-        if (!token?.deviceToken) continue
-        Notification.send(token?.deviceToken, '메시지가 도착했습니다', message.content)
+        const tokens = await prisma.tokens.findMany({ where: { userId: user.id } })
+        if (tokens.length === 0) continue
+        for (const token of tokens) {
+          if (!token.deviceToken) continue
+          Notification.sendMessageNotification(token.deviceToken, '새로운 메시지', {
+            content: message.content,
+            senderName: message.sender.name,
+            senderProfileImage: message.sender.profileImage,
+            timestamp: message.timestamp
+          })
+        }
       }
     })
 
