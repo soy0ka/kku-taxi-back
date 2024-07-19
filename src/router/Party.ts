@@ -104,6 +104,15 @@ app.get('/join/:id', async (req: Request, res: Response) => {
       }
     }
 
+    if (party._count.partyMemberships + 1 === party.maxSize) {
+      const tokens = await prisma.tokens.findMany({ where: { userId: party.ownerId } })
+      if (tokens.length === 0) return
+      for (const token of tokens) {
+        if (!token.deviceToken) continue
+        Notification.send(token.deviceToken, `${party.name} 파티의 모집이 완료되었습니다`, '사용자들과 채팅을 시작해보세요!')
+      }
+    }
+
     return res.status(200).send(Formatter.format(true, 'OK')).end()
   } catch (e) {
     console.error(e)
