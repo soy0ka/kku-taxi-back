@@ -15,17 +15,18 @@ app.post('/login', async (req: Request, res: Response) => {
   const { email } = req.body
   if (!email) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
   if (!Mailer.MailRegex.test(email)) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
-
-  // uuid가 이미 존재할경우 다시 생성 하는 로직
-  while (true) {
-    const uuid = v4()
-    if (!await prisma.user.findFirst({ where: { uuid } })) {
-      await prisma.user.create({ data: { email, uuid, name: RandomName() } })
-      break
+  const usercheck = await prisma.user.findFirst({ where: { email } })
+  if (!usercheck) {
+    while (true) {
+      const uuid = v4()
+      if (!await prisma.user.findFirst({ where: { uuid } })) {
+        await prisma.user.create({ data: { email, uuid, name: RandomName() } })
+        break
+      }
     }
   }
   const user = await prisma.user.findFirst({ where: { email } })
-  if (!user) return res.status(500).send(Formatter.format(false, 'Internal Server Error')).end()
+  if (!user) return res.status(404).send(Formatter.format(false, 'Not Found')).end()
   if (user.banned) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
 
   const code = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
