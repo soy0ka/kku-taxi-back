@@ -27,27 +27,6 @@ export const initializeSocket = (server: HttpServer): Server => {
       Logger.log('ChatManager').put('A user joined').next('id').put(socket.id).next('room').put(room).out()
     })
 
-    socket.on('joinParty', async (data) => {
-      await prisma.message.create({ data: { content: `${data.user.name}님이 파티에 참여했습니다`, senderId: data.user.id, chatRoomId: data.room, isSystem: true } })
-
-      const room = await prisma.chatRoom.findUnique({ select: { users: true }, where: { id: data.room } })
-      Logger.log('ChatManager').put('System message sent').next('id').put(socket.id).next('room').put(data.room).next('message').put(`${data.user.name}님이 파티에 참여했습니다`).out()
-      if (!room) return
-      for (const user of room.users) {
-        const tokens = await prisma.tokens.findMany({ where: { userId: user.id } })
-        if (tokens.length === 0) continue
-        for (const token of tokens) {
-          if (!token.deviceToken) continue
-          Notification.sendMessageNotification(token.deviceToken, '새로운 메시지', {
-            content: `${data.user.name}님이 파티에 참여했습니다`,
-            senderName: '시스템',
-            senderProfileImage: null,
-            timestamp: new Date().toISOString()
-          })
-        }
-      }
-    })
-
     socket.on('messageCreate', async (message) => {
       const dbMessage = await prisma.message.create({
         data: {

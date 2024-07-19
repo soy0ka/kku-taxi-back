@@ -1,10 +1,11 @@
 import { PrismaClient } from '@prisma/client'
 import 'dotenv/config'
 import express, { Request, Response } from 'express'
-import { emitEvent } from '../classes/ChatManager'
 import MiddleWare from '../classes/Middleware'
+import Notification from '../classes/PushNotification'
 import generate from '../classes/RandomName'
 import Formatter from '../classes/ResponseFormat'
+import { Logger } from '../utils/Logger'
 
 const app = express.Router()
 const prisma = new PrismaClient()
@@ -85,11 +86,24 @@ app.get('/join/:id', async (req: Request, res: Response) => {
   if (party._count.partyMemberships >= party.maxSize) return res.status(400).send(Formatter.format(false, 'Party is full')).end()
   try {
     await prisma.partyMembership.create({ data: { partyId: party.id, userId: res.locals.user.id } })
-    const room = await prisma.chatRoom.update({ where: { id: party.chatRoomId }, data: { users: { connect: { id: res.locals.user.id } } } })
-    emitEvent('joinParty', {
-      room: Number(room.id),
-      user: res.locals.user
-    })
+    const room = await prisma.chatRoom.update({ where: { id: party.chatRoomId }, data: { users: { connect: { id: res.locals.user.id } } }, select: { users: true, id: true } })
+    await prisma.message.create({ data: { content: `${res.locals.user.name}님이 파티에 참여했습니다`, senderId: res.locals.user.id, chatRoomId: room.id, isSystem: true } })
+    Logger.log('ChatManager').put('System message sent').next('id').next('room').put(room.id).next('message').put(`${res.locals.user.name}님이 파티에 참여했습니다`).out()
+    if (!room) return
+    for (const user of room.users) {
+      const tokens = await prisma.tokens.findMany({ where: { userId: user.id } })
+      if (tokens.length === 0) continue
+      for (const token of tokens) {
+        if (!token.deviceToken) continue
+        Notification.sendMessageNotification(token.deviceToken, '새로운 메시지', {
+          content: `${res.locals.user.name}님이 파티에 참여했습니다`,
+          senderName: '시스템',
+          senderProfileImage: null,
+          timestamp: new Date().toISOString()
+        })
+      }
+    }
+
     return res.status(200).send(Formatter.format(true, 'OK')).end()
   } catch (e) {
     console.error(e)
