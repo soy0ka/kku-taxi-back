@@ -126,7 +126,7 @@ app.get('/chat/:id', async (req: Request, res: Response) => {
 
   const chatRoom = await prisma.chatRoom.findUnique({ where: { id: parseInt(id, 10) } })
   if (!chatRoom) return res.status(404).send(Formatter.format(false, 'Chat room not found')).end()
-  const party = await prisma.party.findFirst({ where: { chatRoomId: chatRoom.id } })
+  const party = await prisma.party.findFirst({ where: { chatRoomId: chatRoom.id }, select: { fromPlace: true, name: true, toPlace: true, departure: true, ownerId: true, partyMemberships: true, _count: true, maxSize: true } })
   if (!party) return res.status(404).send(Formatter.format(false, 'Party not found')).end()
   return res.status(200).send(Formatter.format(true, 'OK', party)).end()
 })
