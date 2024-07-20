@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import 'dotenv/config'
 import express, { Request, Response } from 'express'
+import { emitEvent } from '../classes/ChatManager'
 import MiddleWare from '../classes/Middleware'
 import Notification from '../classes/PushNotification'
 import generate from '../classes/RandomName'
@@ -76,6 +77,44 @@ app.post('/create', async (req: Request, res: Response) => {
   }
 })
 
+app.post('/pay', async (req: Request, res: Response) => {
+  if (!res.locals.user) return res.status(401).send(Formatter.format(false, 'Unauthorized')).end()
+  const { partyId, price, totalPrice } = req.body
+  if (!partyId || !price || !totalPrice) return res.status(400).send(Formatter.format(false, 'Missing required fields')).end()
+  const party = await prisma.party.findUnique({ where: { id: partyId } })
+  if (!party) return res.status(404).send(Formatter.format(false, 'Party not found')).end()
+  if (party.payRequested) return res.status(429).send(Formatter.format(false, 'Payment already requested')).end()
+  if (party.ownerId !== res.locals.user.id) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
+  const ownerAccount = await prisma.bankAccount.findFirst({ where: { userId: party.ownerId } })
+  try {
+    const maskedName = ownerAccount?.holder.split('').map((char, index) => index !== 1 ? char : '*').join('')
+    const room = await prisma.chatRoom.findUnique({ where: { id: party.chatRoomId }, select: { users: true, id: true } })
+    if (!room) return res.status(404).send(Formatter.format(false, 'Chat room not found')).end()
+
+    const message = `방장이 정산을 요청했습니다 \n계좌번호: ${ownerAccount?.bankName} ${ownerAccount?.account} (예금주: ${maskedName})\n금액: ${price}원 (총액: ${totalPrice}원)`
+    await prisma.message.create({ data: { content: message, senderId: res.locals.user.id, chatRoomId: room.id, isSystem: true } })
+    for (const user of room.users) {
+      const tokens = await prisma.tokens.findMany({ where: { userId: user.id } })
+      if (tokens.length === 0) continue
+      for (const token of tokens) {
+        if (!token.deviceToken) continue
+        Notification.sendMessageNotification(token.deviceToken, '새로운 정산요청이 있습니다', {
+          content: `계좌번호: ${ownerAccount?.bankName} ${ownerAccount?.account} (예금주: ${maskedName})\n금액: ${price}원 (총액: ${totalPrice}원)`,
+          senderName: '시스템',
+          senderProfileImage: null,
+          timestamp: new Date().toISOString()
+        })
+      }
+    }
+    await prisma.party.update({ where: { id: party.id }, data: { payRequested: true } })
+    emitEvent('messageCreate', { content: message, senderId: res.locals.user.id, roomId: room.id, isSystem: true, sender: { id: res.locals.user.id, name: res.locals.user.name, textId: res.locals.user.textId } })
+    Logger.log('ChatManager').put('System message sent').next('id').next('room').put(room.id).next('message').put('정산요청').out()
+  } catch (e) {
+    console.error(e)
+    return res.status(500).send(Formatter.format(false, 'Internal server error')).end()
+  }
+})
+
 app.get('/join/:id', async (req: Request, res: Response) => {
   const { id } = req.params
   if (!id) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
@@ -103,6 +142,7 @@ app.get('/join/:id', async (req: Request, res: Response) => {
         })
       }
     }
+    emitEvent('messageCreate', { content: `${res.locals.user.name}님이 파티에 참여했습니다`, senderId: res.locals.user.id, roomId: room.id, isSystem: true, sender: { id: res.locals.user.id, name: res.locals.user.name, textId: res.locals.user.textId } })
 
     if (party._count.partyMemberships + 1 === party.maxSize) {
       const tokens = await prisma.tokens.findMany({ where: { userId: party.ownerId } })
@@ -126,8 +166,9 @@ app.get('/chat/:id', async (req: Request, res: Response) => {
 
   const chatRoom = await prisma.chatRoom.findUnique({ where: { id: parseInt(id, 10) } })
   if (!chatRoom) return res.status(404).send(Formatter.format(false, 'Chat room not found')).end()
-  const party = await prisma.party.findFirst({ where: { chatRoomId: chatRoom.id }, select: { fromPlace: true, name: true, toPlace: true, departure: true, ownerId: true, partyMemberships: true, _count: true, maxSize: true } })
+  const party = await prisma.party.findFirst({ where: { chatRoomId: chatRoom.id }, select: { fromPlace: true, name: true, toPlace: true, departure: true, ownerId: true, partyMemberships: { select: { User: true } }, _count: true, maxSize: true, id: true, payRequested: true } })
   if (!party) return res.status(404).send(Formatter.format(false, 'Party not found')).end()
   return res.status(200).send(Formatter.format(true, 'OK', party)).end()
 })
+
 export default app

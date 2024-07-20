@@ -32,7 +32,8 @@ export const initializeSocket = (server: HttpServer): Server => {
         data: {
           content: message.content,
           senderId: message.senderId,
-          chatRoomId: Number(message.roomId)
+          chatRoomId: Number(message.roomId),
+          isSystem: message.isSystem || false
         }
       })
       const sender = {

@@ -118,6 +118,7 @@ model Party {
   departure        DateTime
   fromPlaceId      Int
   toPlaceId        Int
+  payRequested     Boolean           @default(false)
   partyMemberships PartyMembership[]
   owner            User              @relation(fields: [ownerId], references: [id])
   chatRoom         ChatRoom          @relation(fields: [chatRoomId], references: [id])
