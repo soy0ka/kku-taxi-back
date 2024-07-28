@@ -3,8 +3,6 @@
     "baseUrl": "./",
     "paths": {
       "@/*" : ["src/*"],
-      "@class/*": ["src/classes/*"],
-      "@korail" : ["/korailtalk/*"],
     },
     "target": "esnext",
     "module": "commonjs",

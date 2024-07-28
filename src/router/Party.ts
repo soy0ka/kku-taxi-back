@@ -1,11 +1,13 @@
-import { PrismaClient } from '@prisma/client'
 import 'dotenv/config'
+
+import { ApiStatusCode, CustomErrorCode } from '@/types/Response'
+import ResponseFormatter from '@/utils/ResponseFormatter'
+import { PrismaClient } from '@prisma/client'
 import express, { Request, Response } from 'express'
 import { emitEvent } from '../classes/ChatManager'
 import MiddleWare from '../classes/Middleware'
 import Notification from '../classes/PushNotification'
 import generate from '../classes/RandomName'
-import Formatter from '../classes/ResponseFormat'
 import { Logger } from '../utils/Logger'
 
 const app = express.Router()
@@ -43,16 +45,19 @@ app.get('/', async (req: Request, res: Response) => {
     }
   })
 
-  // 추가적으로 partymemberships 테이블의 partyId와 같은 컬럼수가 party.maxSize보다 작은 파티만 반환 (인원수가 충족되지 못한 파티만 반환)
+  // partymemberships 테이블의 partyId와 같은 컬럼수가 party.maxSize보다 작은 파티만 반환 (인원수가 충족되지 못한 파티만 반환)
   const filteredParties = parties.filter(party => party._count.partyMemberships < party.maxSize)
-  return res.status(200).send(Formatter.format(true, 'OK', filteredParties)).end()
+  return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success(filteredParties)).end()
 })
 
 app.post('/create', async (req: Request, res: Response) => {
   const { description, dateTime, departure, arrival, maxSize } = req.body
-  if (!description || !dateTime || !departure || !arrival || !maxSize) return res.status(400).send(Formatter.format(false, 'Missing required fields')).end()
+  if (!description || !dateTime || !departure || !arrival || !maxSize) {
+    return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD))
+  }
   const date = new Date(dateTime)
-  if (date < new Date()) return res.status(400).send(Formatter.format(false, 'Invalid date')).end()
+  if (date < new Date()) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.DATE_EXPIRED)).end()
+
   const name = generate()
   try {
     const party = await prisma.party.create({
@@ -61,38 +66,41 @@ app.post('/create', async (req: Request, res: Response) => {
         description,
         departure: date,
         maxSize: maxSize + 1,
-        chatRoom: { create: { name: `${name} 채팅방`, users: { connect: { id: res.locals.user.id } } } },
-        fromPlace: { connect: { id: departure } },
         toPlace: { connect: { id: arrival } },
+        fromPlace: { connect: { id: departure } },
         owner: { connect: { id: res.locals.user.id } },
-        partyMemberships: { create: { User: { connect: { id: res.locals.user.id } } } }
-
+        partyMemberships: { create: { User: { connect: { id: res.locals.user.id } } } },
+        chatRoom: { create: { name: `${name} 채팅방`, users: { connect: { id: res.locals.user.id } } } }
       }
     })
 
-    return res.status(200).send(Formatter.format(true, 'OK', { id: party.chatRoomId })).end()
+    return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success(party)).end()
   } catch (e) {
     console.error(e)
-    return res.status(500).send(Formatter.format(false, 'Internal server error')).end()
+    return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(ResponseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
   }
 })
 
 app.post('/pay', async (req: Request, res: Response) => {
-  if (!res.locals.user) return res.status(401).send(Formatter.format(false, 'Unauthorized')).end()
+  if (!res.locals.user) return res.status(ApiStatusCode.UNAUTHORIZED).send(ResponseFormatter.error(CustomErrorCode.UNAUTHORIZED_TOKEN)).end()
+
   const { partyId, price, totalPrice } = req.body
-  if (!partyId || !price || !totalPrice) return res.status(400).send(Formatter.format(false, 'Missing required fields')).end()
+  if (!partyId || !price || !totalPrice) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
+
   const party = await prisma.party.findUnique({ where: { id: partyId } })
-  if (!party) return res.status(404).send(Formatter.format(false, 'Party not found')).end()
-  if (party.payRequested) return res.status(429).send(Formatter.format(false, 'Payment already requested')).end()
-  if (party.ownerId !== res.locals.user.id) return res.status(403).send(Formatter.format(false, 'Forbidden')).end()
+  if (!party) return res.status(ApiStatusCode.NOT_FOUND).send(ResponseFormatter.error(CustomErrorCode.PARTY_NOT_FOUND)).end()
+  if (party.payRequested) return res.status(ApiStatusCode.TOO_MANY_REQUESTS).send(ResponseFormatter.error(CustomErrorCode.ALREADY_PAID)).end()
+  if (party.ownerId !== res.locals.user.id) return res.status(ApiStatusCode.FORBIDDEN).send(ResponseFormatter.error(CustomErrorCode.NO_PERMISSION)).end()
+
   const ownerAccount = await prisma.bankAccount.findFirst({ where: { userId: party.ownerId } })
   try {
     const maskedName = ownerAccount?.holder.split('').map((char, index) => index !== 1 ? char : '*').join('')
     const room = await prisma.chatRoom.findUnique({ where: { id: party.chatRoomId }, select: { users: true, id: true } })
-    if (!room) return res.status(404).send(Formatter.format(false, 'Chat room not found')).end()
+    if (!room) return res.status(ApiStatusCode.NOT_FOUND).send(ResponseFormatter.error(CustomErrorCode.CHATROOM_NOT_FOUND)).end()
 
     const message = `방장이 정산을 요청했습니다 \n계좌번호: ${ownerAccount?.bankName} ${ownerAccount?.account} (예금주: ${maskedName})\n금액: ${price}원 (총액: ${totalPrice}원)`
     await prisma.message.create({ data: { content: message, senderId: res.locals.user.id, chatRoomId: room.id, isSystem: true } })
+
     for (const user of room.users) {
       const tokens = await prisma.tokens.findMany({ where: { userId: user.id } })
       if (tokens.length === 0) continue
@@ -110,19 +118,21 @@ app.post('/pay', async (req: Request, res: Response) => {
     emitEvent('messageCreate', { content: message, senderId: res.locals.user.id, roomId: room.id, isSystem: true, sender: { id: res.locals.user.id, name: res.locals.user.name, textId: res.locals.user.textId } })
     Logger.log('ChatManager').put('System message sent').next('id').next('room').put(room.id).next('message').put('정산요청').out()
   } catch (e) {
-    console.error(e)
-    return res.status(500).send(Formatter.format(false, 'Internal server error')).end()
+    Logger.error('PartyPay').put(e).out()
+    return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(ResponseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
   }
 })
 
 app.get('/join/:id', async (req: Request, res: Response) => {
   const { id } = req.params
-  if (!id) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
+  if (!id) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
   const party = await prisma.party.findUnique({ where: { id: parseInt(id, 10) }, include: { _count: { select: { partyMemberships: true } } } })
-  if (!party) return res.status(404).send(Formatter.format(false, 'Party not found')).end()
+  if (!party) return res.status(ApiStatusCode.NOT_FOUND).send(ResponseFormatter.error(CustomErrorCode.PARTY_NOT_FOUND)).end()
+
   const isJoined = await prisma.partyMembership.findFirst({ where: { partyId: party.id, userId: res.locals.user.id } })
-  if (isJoined) return res.status(400).send(Formatter.format(false, 'Already joined')).end()
-  if (party._count.partyMemberships >= party.maxSize) return res.status(400).send(Formatter.format(false, 'Party is full')).end()
+  if (isJoined) return res.status(ApiStatusCode.FORBIDDEN).send(ResponseFormatter.error(CustomErrorCode.ALREADY_PARTY_MEMEBER)).end()
+  if (party._count.partyMemberships >= party.maxSize) return res.status(ApiStatusCode.FORBIDDEN).send(ResponseFormatter.error(CustomErrorCode.PARTY_FULL)).end()
+
   try {
     await prisma.partyMembership.create({ data: { partyId: party.id, userId: res.locals.user.id } })
     const room = await prisma.chatRoom.update({ where: { id: party.chatRoomId }, data: { users: { connect: { id: res.locals.user.id } } }, select: { users: true, id: true } })
@@ -153,22 +163,22 @@ app.get('/join/:id', async (req: Request, res: Response) => {
       }
     }
 
-    return res.status(200).send(Formatter.format(true, 'OK')).end()
+    return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({})).end()
   } catch (e) {
-    console.error(e)
-    return res.status(500).send(Formatter.format(false, 'Internal server error')).end()
+    Logger.error('PartyJoin').put(e).out()
+    return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(ResponseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
   }
 })
 
 app.get('/chat/:id', async (req: Request, res: Response) => {
   const { id } = req.params
-  if (!id) return res.status(400).send(Formatter.format(false, 'Bad Request')).end()
+  if (!id) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
 
   const chatRoom = await prisma.chatRoom.findUnique({ where: { id: parseInt(id, 10) } })
-  if (!chatRoom) return res.status(404).send(Formatter.format(false, 'Chat room not found')).end()
+  if (!chatRoom) return res.status(ApiStatusCode.NOT_FOUND).send(ResponseFormatter.error(CustomErrorCode.CHATROOM_NOT_FOUND)).end()
   const party = await prisma.party.findFirst({ where: { chatRoomId: chatRoom.id }, select: { fromPlace: true, name: true, toPlace: true, departure: true, ownerId: true, partyMemberships: { select: { User: true } }, _count: true, maxSize: true, id: true, payRequested: true } })
-  if (!party) return res.status(404).send(Formatter.format(false, 'Party not found')).end()
-  return res.status(200).send(Formatter.format(true, 'OK', party)).end()
+  if (!party) return res.status(ApiStatusCode.NOT_FOUND).send(ResponseFormatter.error(CustomErrorCode.PARTY_NOT_FOUND)).end()
+  return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success(party)).end()
 })
 
 export default app

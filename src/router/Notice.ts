@@ -1,13 +1,12 @@
+import { ApiStatusCode } from '@/types/Response'
+import ResponseFormatter from '@/utils/ResponseFormatter'
 import 'dotenv/config'
-import Formatter from '../classes/ResponseFormat'
 import express, { Request, Response } from 'express'
 
 const app = express.Router()
 
 app.get('/', async (req: Request, res: Response) => {
-  return res.status(200).send(Formatter.format(
-    true, 'OK', '베타 서비스입니다 아직 불안정 할 수 있어요!'
-  )).end()
+  return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({ message: '여기에 공지를 적어주세요' })).end()
 })
 
 export default app

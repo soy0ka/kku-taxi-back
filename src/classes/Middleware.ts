@@ -1,9 +1,10 @@
 // import { Logger } from '../utils/Logger'
+import { ApiStatusCode, CustomErrorCode } from '@/types/Response'
+import JWT from '@/utils/JWT'
+import ResponseFormatter from '@/utils/ResponseFormatter'
 import { PrismaClient } from '@prisma/client'
 import { NextFunction, Request, Response } from 'express'
 import { Logger } from '../utils/Logger'
-import JWT from './JWT'
-import Formatter from './ResponseFormat'
 
 const db = new PrismaClient()
 
@@ -23,6 +24,7 @@ export default class MiddleWare {
     next()
   }
 
+  // firebase app check
   // public static async verify (req: Request, res: Response, next: NextFunction) {
   //   const appCheckToken = req.header('X-Firebase-AppCheck')
   //   if (!appCheckToken) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
@@ -38,23 +40,23 @@ export default class MiddleWare {
 
   public static async auth (req: Request, res: Response, next: NextFunction) {
     const token = req.header('Authorization')?.split('Bearer ')[1]
-    if (!token) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
+    if (!token) return res.status(ApiStatusCode.UNAUTHORIZED).json(ResponseFormatter.error(CustomErrorCode.UNAUTHORIZED_TOKEN)).end()
     try {
       const dbToken = await db.tokens.findFirst({ where: { token } })
-      if (!dbToken) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
+      if (!dbToken) return res.status(ApiStatusCode.UNAUTHORIZED).json(ResponseFormatter.error(CustomErrorCode.TOKEN_NOT_FOUND)).end()
 
       const decoded = JWT.verify(token)
-      if (!decoded || !decoded.ok) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
+      if (!decoded || !decoded.ok) return res.status(ApiStatusCode.UNAUTHORIZED).json(ResponseFormatter.error(CustomErrorCode.INVALID_TOKEN)).end()
 
-      const user = await db.user.findUnique({ select: { id: true, name: true, email: true, banned: true, bankaccount: true }, where: { id: decoded.id } })
-      if (!user) return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
-      if (user.banned) return res.status(401).json(Formatter.format(false, 'Banned')).end()
+      const user = await db.user.findUnique({ select: { id: true, name: true, email: true, banned: true, bankaccount: true }, where: { id: Number(decoded.id) } })
+      if (!user) return res.status(ApiStatusCode.UNAUTHORIZED).json(ResponseFormatter.error(CustomErrorCode.USER_NOT_FOUND)).end()
+      if (user.banned) return res.status(ApiStatusCode.FORBIDDEN).json(ResponseFormatter.error(CustomErrorCode.TEMPARAY_DISABLE)).end()
 
       res.locals.user = user
       next()
     } catch (error:any) {
       Logger.error(error.name).put(error.stack).out()
-      return res.status(401).json(Formatter.format(false, 'Invalid Token')).end()
+      return res.status(ApiStatusCode.UNAUTHORIZED).json(ResponseFormatter.error(CustomErrorCode.UNAUTHORIZED_TOKEN)).end()
     }
   }
 }
