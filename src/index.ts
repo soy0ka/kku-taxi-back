@@ -41,9 +41,28 @@ server.listen(port, () => {
 
 // 주기적인 authcode 삭제
 setInterval(async () => {
-  Logger.log('AuthCodeCleaner').put('Cleaning Started').out()
+  Logger.log('Job').put('Autcode Cleaning Started').out()
   await prisma.authCode.deleteMany({ where: { expiredAt: { lte: new Date() } } })
-  Logger.log('AuthCodeCleaner').put('Cleaning Finished').out()
+  Logger.log('Job').put('Autcode Cleaning Finished').out()
+}, 1000 * 60 * 60)
+
+setInterval(async () => {
+  Logger.log('Job').put('Token Cleaning Started').out()
+  const tokensToDelete = await prisma.tokens.findMany({
+    orderBy: {
+      createdAt: 'desc'
+    },
+    distinct: ['device'] // 각 기기(device)별로 가장 최근 토큰을 제외
+  })
+
+  const tokenIdsToDelete = tokensToDelete.map(token => token.id)
+  await prisma.tokens.deleteMany({
+    where: {
+      id: {
+        in: tokenIdsToDelete
+      }
+    }
+  })
 }, 1000 * 60 * 60)
 
 process.on('uncaughtException', e => {
