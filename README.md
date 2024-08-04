@@ -37,7 +37,7 @@ PORT=3000
 
 ### 데이터베이스 마이그레이션
 ```bash
-yarn prisma migrate dev
+yarn prisma migrate deploy
 ```
 
 ### 서버 실행
