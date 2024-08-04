@@ -12,6 +12,8 @@ import Auth from './router/Auth'
 import Chat from './router/Chat'
 import Notice from './router/Notice'
 import Party from './router/Party'
+import { ApiStatusCode, CustomErrorCode } from './types/Response'
+import ResponseFormatter from './utils/ResponseFormatter'
 
 const app = express()
 const prisma = new PrismaClient()
@@ -30,9 +32,12 @@ app.use('/auth', Auth)
 app.use('/chat', Chat)
 app.use('/notice', Notice)
 app.use('/party', Party)
-app.use('/session', async (req: Request, res: Response) => { return res.status(200).send({ code: 200, message: 'OK' }).end() })
-app.use('*', async (req: Request, res: Response, next: NextFunction) => { res.status(404).send({ code: 404, message: 'Not Found' }) })
-
+app.use('/session', async (req: Request, res: Response) => {
+  res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({ message: 'OK' })).end()
+})
+app.use('*', async (req: Request, res: Response, next: NextFunction) => {
+  res.status(ApiStatusCode.NOT_FOUND).send(ResponseFormatter.error(CustomErrorCode.PAGE_NOT_FOUND)).end()
+})
 server.listen(port, () => {
   const env = process.env.ENVIRONMENT || 'development'
   Logger.info('Environment').put(env).out()
