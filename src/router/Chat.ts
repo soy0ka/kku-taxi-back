@@ -15,7 +15,15 @@ app.get('/me', async (req: Request, res: Response) => {
     select: {
       id: true,
       name: true,
-      Party: true
+      Party: {
+        select: {
+          id: true,
+          name: true,
+          fromPlace: true,
+          toPlace: true,
+          departure: true
+        }
+      }
     },
     where: {
       users: { some: { id: res.locals.user.id } }, // 내가 속한 채팅방중
