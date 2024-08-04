@@ -53,11 +53,29 @@ setInterval(async () => {
 
 setInterval(async () => {
   Logger.log('Job').put('Token Cleaning Started').out()
-  const tokensToDelete = await prisma.tokens.findMany({
+
+  // 각 기기별로 가장 최근 토큰을 찾음
+  const recentTokens = await prisma.tokens.findMany({
     orderBy: {
       createdAt: 'desc'
     },
-    distinct: ['device'] // 각 기기(device)별로 가장 최근 토큰을 제외
+    distinct: ['device'],
+    select: {
+      id: true
+    }
+  })
+  const recentTokenIds = recentTokens.map(token => token.id)
+
+  // 가장 최근 토큰을 제외한 모든 토큰을 찾음
+  const tokensToDelete = await prisma.tokens.findMany({
+    where: {
+      id: {
+        notIn: recentTokenIds
+      }
+    },
+    select: {
+      id: true
+    }
   })
 
   const tokenIdsToDelete = tokensToDelete.map(token => token.id)
