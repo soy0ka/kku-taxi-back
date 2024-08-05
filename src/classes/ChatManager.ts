@@ -1,9 +1,9 @@
 // socket.js
+import { Logger } from '@/utils/Logger'
+import Notification from '@/utils/PushNotification'
 import { PrismaClient } from '@prisma/client'
 import { Server as HttpServer } from 'http'
 import { Server } from 'socket.io'
-import { Logger } from '../utils/Logger'
-import Notification from './PushNotification'
 
 const prisma = new PrismaClient()
 let io: Server
