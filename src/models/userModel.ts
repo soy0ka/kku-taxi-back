@@ -41,3 +41,7 @@ export const saveToken = async (token: string, data: {
     }
   })
 }
+
+export const getUserDevices = async (userId: number) => {
+  return await prisma.tokens.findMany({ where: { userId } })
+}

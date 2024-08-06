@@ -18,6 +18,7 @@ export enum ApiStatusCode {
 
 export enum CustomErrorCode {
   "PAGE_NOT_FOUND" = "404",
+  "METHOD_NOT_ALLOWED" = "405",
   "UNAUTHORIZED_TOKEN" = "A101",
   "INVALID_TOKEN" = "A102",
   "TOKEN_NOT_FOUND" = "A103",
