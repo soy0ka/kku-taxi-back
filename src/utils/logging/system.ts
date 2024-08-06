@@ -1,7 +1,7 @@
 /* eslint-disable no-eval */
 import { readFileSync } from 'fs'
-import { Logger } from './Logger'
-import { TIMEZONE_OFFSET } from './Utility'
+import { Logger } from './logger'
+import { TIMEZONE_OFFSET } from './utility'
 
 type ScheduleOptions = {
   /**

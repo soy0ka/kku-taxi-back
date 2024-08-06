@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { DateUnit } from '../enums/DateUnit'
-import { Logger } from './Logger'
+import { DateUnit } from './enums/dateUnit'
+import { Logger } from './logger'
 
 /**
  * 무시 함수.

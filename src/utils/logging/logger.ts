@@ -2,10 +2,10 @@
 import Cluster from 'cluster'
 import { createWriteStream, existsSync, mkdirSync } from 'fs'
 import { pid } from 'process'
-import { DateUnit } from '../enums/DateUnit'
-import { CLOTHES } from './Clothes'
-import { schedule } from './System'
-import { cut, TIMEZONE_OFFSET, toSignedString } from './Utility'
+import { CLOTHES } from './clothes'
+import { DateUnit } from './enums/dateUnit'
+import { schedule } from './system'
+import { cut, TIMEZONE_OFFSET, toSignedString } from './utility'
 
 const SETTINGS = {
   log: {
