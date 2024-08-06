@@ -2,7 +2,7 @@ import { BasePushPayload } from '@/types/system/expoPush'
 import { post } from 'superagent'
 import { Logger } from '../logging/logger'
 
-const sendRequest = async (body: object) => {
+export const sendRequest = async (body: object) => {
   try {
     const response = await post('https://exp.host/--/api/v2/push/send')
       .set({
@@ -18,7 +18,7 @@ const sendRequest = async (body: object) => {
   }
 }
 
-const send = async (expoPushToken: string, title: string, message: string) => {
+export const send = async (expoPushToken: string | string[], title: string, message: string) => {
   const body: BasePushPayload = {
     title,
     priority: 'default',
@@ -35,5 +35,5 @@ const send = async (expoPushToken: string, title: string, message: string) => {
 }
 
 export default {
-  send
+  send, sendRequest
 }
