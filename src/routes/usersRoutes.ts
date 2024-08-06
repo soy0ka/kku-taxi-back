@@ -8,6 +8,5 @@ const router = Router()
 router.use(authMiddleware)
 router.get('/me', getCurrentUser)
 router.use('/me/devices', deviceRouter)
-router.post('/me/notifications') // save notification token
 
 export default router

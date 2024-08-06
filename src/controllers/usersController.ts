@@ -1,26 +1,36 @@
-import { getUserDevices, updateUserDevice } from '@/models/userModel'
+import { getCurrentUserInfo, getUserDevicesInfo, getUserInfo, updateUserDeviceInfo } from '@/services/usersService'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import { Request, Response } from 'express'
 
 export const getCurrentUser = async (req: Request, res: Response) => {
   const user = res.locals.user
-  if (!user) return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.USER_NOT_FOUND)).end()
-
-  return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(user)).end()
+  try {
+    const result = await getCurrentUserInfo(user)
+    return res.status(ApiStatusCode.SUCCESS).send(result).end()
+  } catch (error) {
+    return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.UNAUTHORIZED_TOKEN)).end()
+  }
 }
 
 export const getUserInformation = async (req: Request, res: Response) => {
   const { id } = req.params
-  return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ id })).end()
+  try {
+    const result = await getUserInfo(id)
+    return res.status(ApiStatusCode.SUCCESS).send(result).end()
+  } catch (error) {
+    return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(responseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
+  }
 }
 
 export const getCurrentUserDevice = async (req: Request, res: Response) => {
   const user = res.locals.user
-  if (!user) return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.USER_NOT_FOUND)).end()
-
-  const devices = await getUserDevices(user.id)
-  return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ devices })).end()
+  try {
+    const result = await getUserDevicesInfo(user.id)
+    return res.status(ApiStatusCode.SUCCESS).send(result).end()
+  } catch (error) {
+    return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.UNAUTHORIZED_TOKEN)).end()
+  }
 }
 
 export const updateCurrentUserDevice = async (req: Request, res: Response) => {
@@ -28,11 +38,10 @@ export const updateCurrentUserDevice = async (req: Request, res: Response) => {
   const deviceId = req.params.id
   const { pushToken } = req.body
 
-  if (!deviceId || isNaN(Number(deviceId))) return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.INVALID_PARAMS)).end()
-  if (!pushToken) return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
-
-  const updated = await updateUserDevice(user.id, Number(deviceId), pushToken)
-  if (!updated) return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(responseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
-
-  return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({})).end()
+  try {
+    const result = await updateUserDeviceInfo(user.id, Number(deviceId), pushToken)
+    return res.status(ApiStatusCode.SUCCESS).send(result).end()
+  } catch (error) {
+    return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.INVALID_PARAMS)).end()
+  }
 }
