@@ -1,4 +1,4 @@
-import { getCurrentUserInfo, getUserDevicesInfo, getUserInfo, updateUserDeviceInfo } from '@/services/usersService'
+import { getCurrentUserInfo, getUserDevicesInfo, getUserInfo, updateUserDeviceInfo } from '@/services/userService'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import { Request, Response } from 'express'
