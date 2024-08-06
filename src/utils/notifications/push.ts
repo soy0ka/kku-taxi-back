@@ -1,3 +1,4 @@
+import { BasePushPayload } from '@/types/system/expoPush'
 import { post } from 'superagent'
 import { Logger } from '../logging/logger'
 
@@ -10,55 +11,28 @@ const sendRequest = async (body: object) => {
         'Content-Type': 'application/json'
       })
       .send(body)
-    console.log('Notification sent:', response.body)
+
+    Logger.info('Push Notification HTTP Request').put(response).out()
   } catch (error) {
-    console.error('Error sending notification:', error)
+    Logger.error('Push Notification HTTP Request').put(error).out()
   }
 }
 
 const send = async (expoPushToken: string, title: string, message: string) => {
-  const body = {
-    to: expoPushToken,
-    sound: 'default',
+  const body: BasePushPayload = {
     title,
-    body: message,
-    data: { message }
+    priority: 'default',
+    to: expoPushToken,
+    body: message
   }
 
   try {
     await sendRequest(body)
     Logger.info('Push Notification').put('sent').out()
   } catch (error) {
-    console.error('Error sending notification:', error)
+    Logger.error('Push Notification').put(error).out()
   }
 }
-
-// const sendMessageNotification = async (expoPushToken: string, title: string, message: Message) => {
-//   const messagePayload = {
-//     to: expoPushToken,
-//     sound: 'default',
-//     title: `${message.senderName}님으로부터 새로운 메시지`,
-//     body: message.content,
-//     data: {
-//       type: 'chat_message',
-//       senderName: message.senderName,
-//       senderProfileImage: message.senderProfileImage,
-//       content: message.content,
-//       timestamp: message.timestamp
-//     }
-//   }
-//   try {
-//     await post('https://exp.host/--/api/v2/push/send')
-//       .set({
-//         Accept: 'application/json',
-//         'Accept-encoding': 'gzip, deflate',
-//         'Content-Type': 'application/json'
-//       })
-//       .send(messagePayload)
-//   } catch (error) {
-//     console.error('Error sending notification:', error)
-//   }
-// }
 
 export default {
   send
