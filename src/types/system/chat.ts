@@ -1,13 +1,15 @@
+export interface Sender {
+  id: number
+  name: string
+  textId: string
+  profileImage: string
+}
+
 export interface Message {
   content: string
   senderId: number
   roomId: number
-  isSystem?: boolean
-  sender: {
-    id: number
-    name: string
-    textId: string
-    profileImage: string
-  }
+  isSystem?: boolean // Default is false
+  sender: Sender
   timestamp: Date
 }

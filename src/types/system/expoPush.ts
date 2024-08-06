@@ -7,7 +7,7 @@ export interface BasePushPayload {
   data?: Object
   ttl?: number
   expiration?: number // UNIX Timestamp
-  priority: PushPriority
+  priority?: PushPriority
   categoryId?: string
 }
 
