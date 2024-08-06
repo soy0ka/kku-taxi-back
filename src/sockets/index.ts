@@ -1,5 +1,6 @@
 import { Server as HttpServer } from 'http'
 import { Server } from 'socket.io'
+import { registerChatHandlers } from './chatWebSocket'
 
 let io: Server
 
@@ -10,6 +11,9 @@ export const initializeSocketServer = (server: HttpServer): Server => {
       methods: ['GET', 'POST']
     }
   })
+
+  const chatNamespace = io.of('/chat')
+  registerChatHandlers(chatNamespace)
 
   return io
 }
