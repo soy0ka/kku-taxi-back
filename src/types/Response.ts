@@ -31,6 +31,7 @@ export enum CustomErrorCode {
   "INVALID_FIELD" = "I102",
   "INVALID_EMAIL" = "I103",
   "DATE_EXPIRED" = "I104",
+  "INVALID_PARAMS" = "I201",
 
   "CHATROOM_NOT_FOUND" = "U101",
   "PARTY_NOT_FOUND" = "U201",
@@ -47,7 +48,8 @@ export type CustomErrorCodeType = `${CustomErrorCode}`
 export function CustomErrorMessage (code: CustomErrorCodeType): string {
   if (code === '404') return '요청하신 경로를 찾을 수 없습니다'
   else if (code.startsWith('A1')) return '인증에 실패하였습니다'
-  else if (code.startsWith('I1')) return '입력값에 문제가 있습니다'
+  else if (code.startsWith('I1')) return '입력값이 잘못되었습니다'
+  else if (code.startsWith('I2')) return '입력값이 잘못되었습니다'
   else if (code.startsWith('C1')) return '인증코드가 만료되었습니다'
   else if (code.startsWith('U1')) return '채팅방 관련 문제가 발생했습니다'
   else if (code.startsWith('U2')) return '파티 관련 문제가 발생했습니다'

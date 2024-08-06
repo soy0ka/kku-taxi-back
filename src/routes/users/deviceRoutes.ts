@@ -1,4 +1,5 @@
 // root: /users/devices
+import { getCurrentUserDevice, updateCurrentUserDevice } from '@/controllers/usersController'
 import authMiddleware from '@/middlewares/auth'
 import methodNotAllowedHandler from '@/middlewares/methodNotAllowed'
 import { Router } from 'express'
@@ -6,9 +7,9 @@ import { Router } from 'express'
 const router = Router()
 
 router.use(authMiddleware)
-router.get('/') // get user devices
-router.post('/') // save user devices
-router.patch('/') // update user devices
+router.get('/', getCurrentUserDevice)
+// router.post('/') // save user devices
+router.patch('/', updateCurrentUserDevice) // update user devices
 router.delete('/') // delete user devices
 router.use('/', methodNotAllowedHandler)
 
