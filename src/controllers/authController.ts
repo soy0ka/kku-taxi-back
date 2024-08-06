@@ -4,6 +4,7 @@ import responseFormatter from '@/utils/formatter/response'
 import Mailer from '@/utils/notifications/mailer'
 import { Request, Response } from 'express'
 
+// POST /auth/login
 export const login = async (req: Request, res: Response) => {
   const { email } = req.body
   if (!email) return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
@@ -23,6 +24,7 @@ export const login = async (req: Request, res: Response) => {
   }
 }
 
+// POST /auth/code
 export const verifyAuthCode = async (req: Request, res: Response) => {
   const { code } = req.body
   const deviceID = req.headers['x-device-id'] as string
