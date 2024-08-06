@@ -14,12 +14,12 @@ export const createAuthCode = async (userId: number) => {
 }
 
 export const getAuthCode = async (code: string) => {
-  return await prisma.authCode.findFirst({
+  return prisma.authCode.findFirst({
     where: { code },
     include: { User: true }
   })
 }
 
 export const deleteAuthCode = async (id: number) => {
-  return await prisma.authCode.delete({ where: { id } })
+  return prisma.authCode.delete({ where: { id } })
 }
