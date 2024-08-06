@@ -39,3 +39,10 @@ export const verifyAuthCode = async (req: Request, res: Response) => {
   const { token } = await signToken(status.userId, { deviceID, platform })
   return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ token })).end()
 }
+
+export const getCurrentUser = async (req: Request, res: Response) => {
+  const user = res.locals.user
+
+  if (!user) return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.USER_NOT_FOUND)).end()
+  return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(user)).end()
+}
