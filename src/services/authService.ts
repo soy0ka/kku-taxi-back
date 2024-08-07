@@ -1,5 +1,7 @@
+import { CustomError } from '@/classes/CustomError'
 import { createAuthCode, deleteAuthCode, getAuthCode } from '@/models/authcodeModel'
 import { createUser, findUserByEmail, saveToken } from '@/models/userModel'
+import { CustomErrorCode } from '@/types/response'
 import JWT from '@/utils/auth/jwt'
 import { User } from '@prisma/client'
 
@@ -19,11 +21,12 @@ export const generateCode = async (userId: number) => {
 export const verifyCode = async (code: string) => {
   const authCode = await getAuthCode(code)
 
-  if (!authCode) return { valid: false, expired: false, userId: null }
-  if (authCode.expiredAt < new Date()) return { valid: false, expired: true, userId: authCode.userId }
+  if (!authCode) throw new CustomError(CustomErrorCode.INVALID_AUTH_CODE)
+  if (authCode.expiredAt < new Date()) throw new CustomError(CustomErrorCode.AUTH_CODE_EXPIRED)
+
   else {
     await deleteAuthCode(authCode.id)
-    return { valid: true, expired: false, userId: authCode.userId }
+    return authCode.userId
   }
 }
 

@@ -25,19 +25,18 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 }
 
 // POST /auth/code
-export const verifyAuthCode = async (req: Request, res: Response) => {
-  const { code } = req.body
-  const deviceID = req.headers['x-device-id'] as string
-  const platform = req.headers['x-device'] as string
+export const verifyAuthCode = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { code } = req.body
+    const deviceID = req.headers['x-device-id'] as string
+    const platform = req.headers['x-device'] as string
 
-  if (!code) return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
-  const status = await verifyCode(code)
+    if (!code) throw new CustomError(CustomErrorCode.REQUIRED_FIELD)
+    const userId = await verifyCode(code)
 
-  if (!status.valid || !status.userId) {
-    if (status.expired) return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.AUTH_CODE_EXPIRED)).end()
-    else return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.INVALID_AUTH_CODE)).end()
+    const { token } = await signToken(userId, { deviceID, platform })
+    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ token })).end()
+  } catch (error) {
+    next(error)
   }
-
-  const { token } = await signToken(status.userId, { deviceID, platform })
-  return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ token })).end()
 }
