@@ -4,11 +4,12 @@
 // router.post('/:id/reports') // 채팅 신고
 
 import { CustomError } from '@/classes/CustomError'
-import { getChatroomListByUserId } from '@/services/chatService'
+import { checkChatroomMembership, getChatroomDetails, getChatroomListByUserId, getChatroomMessages } from '@/services/chatService'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'
 
+// GET /chat/:idOrMe
 export const getCurrentUserChatOrById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { idOrMe } = req.params
@@ -19,10 +20,44 @@ export const getCurrentUserChatOrById = async (req: Request, res: Response, next
       const chatrooms = await getChatroomListByUserId(user.id)
       return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ chatrooms })).end()
     } else {
-      // 특정 사용자 채팅 목록 조회 (권한 먼저 구현해야 함)
+      // 특정 사용자 채팅 목록 조회 (미구현)
       // getChatroomListByUserId(Number(idOrMe))
       throw new CustomError(CustomErrorCode.NO_PERMISSION)
     }
+  } catch (error: any) {
+    next(error)
+  }
+}
+
+// GET /chat/:id/details
+export const getChatroomDetailsById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params
+    if (!id) throw new CustomError(CustomErrorCode.REQUIRED_FIELD)
+
+    const isMember = await checkChatroomMembership(res.locals.user.id, Number(id))
+    if (!isMember) throw new CustomError(CustomErrorCode.NO_PERMISSION)
+
+    const chatroom = await getChatroomDetails(Number(id))
+    if (!chatroom) throw new CustomError(CustomErrorCode.CHATROOM_NOT_FOUND)
+
+    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(chatroom)).end()
+  } catch (error: any) {
+    next(error)
+  }
+}
+
+// GET /chat/:id/messages
+export const getMessagesByChatroomId = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params
+    if (!id) throw new CustomError(CustomErrorCode.REQUIRED_FIELD)
+
+    const isMember = await checkChatroomMembership(res.locals.user.id, Number(id))
+    if (!isMember) throw new CustomError(CustomErrorCode.NO_PERMISSION)
+
+    const chatrooms = await getChatroomMessages(Number(id))
+    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(chatrooms)).end()
   } catch (error: any) {
     next(error)
   }
