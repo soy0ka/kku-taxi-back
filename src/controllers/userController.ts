@@ -1,3 +1,4 @@
+import { CustomError } from '@/classes/CustomError'
 import { getCurrentUser, getUserDevicesInfo, updateUserDeviceInfo } from '@/services/userService'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
@@ -21,28 +22,30 @@ export const getCurrentUserOrById = async (req: Request, res: Response, next: Ne
 }
 
 // GET /user/@me/devices
-export const getCurrentUserDevice = async (req: Request, res: Response) => {
-  const user = res.locals.user
+export const getCurrentUserDevice = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const user = res.locals.user
     const result = await getUserDevicesInfo(user.id)
+
     return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(result)).end()
   } catch (error) {
-    return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.UNAUTHORIZED_TOKEN)).end()
+    next(error)
   }
 }
 
-// PATCH /user/@me/devices/:id
-export const updateCurrentUserDevice = async (req: Request, res: Response) => {
-  const user = res.locals.user
-  const deviceId = req.params.id
-  const { pushToken } = req.body
-
-  if (!deviceId || !pushToken) return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
-
+// PATCH /user/@me/devices/
+export const updateCurrentUserDevice = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result = await updateUserDeviceInfo(user.id, Number(deviceId), pushToken)
-    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(result)).end()
+    const user = res.locals.user
+    const deviceId = res.locals.deviceID
+    const { pushToken } = req.body
+    if (!deviceId) throw new CustomError(CustomErrorCode.DEVICE_NOT_FOUND)
+    if (!pushToken) throw new CustomError(CustomErrorCode.REQUIRED_FIELD)
+
+    const result = await updateUserDeviceInfo(user.id, deviceId, pushToken)
+
+    return res.status(ApiStatusCode.SUCCESS).send(result).end()
   } catch (error) {
-    return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.INVALID_PARAMS)).end()
+    next(error)
   }
 }

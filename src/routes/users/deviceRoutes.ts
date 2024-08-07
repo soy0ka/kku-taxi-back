@@ -12,7 +12,7 @@ router.get('/', getCurrentUserDevice)
 // router.patch('/', updateCurrentUserDevice) // update user devices
 router.delete('/') // delete user devices
 
-router.patch('/:id', updateCurrentUserDevice)
+router.patch('/', updateCurrentUserDevice)
 
 router.use('/', methodNotAllowedHandler)
 
