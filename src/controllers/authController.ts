@@ -1,5 +1,6 @@
 import { CustomError } from '@/classes/CustomError'
 import { generateCode, getUserOrCreate, signToken, verifyCode } from '@/services/authService'
+import { updateUserDeviceInfo } from '@/services/userService'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import Mailer from '@/utils/notifications/mailer'
@@ -36,6 +37,22 @@ export const verifyAuthCode = async (req: Request, res: Response, next: NextFunc
 
     const { token } = await signToken(userId, { deviceID, platform })
     return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ token })).end()
+  } catch (error) {
+    next(error)
+  }
+}
+
+// POST /auth/notification
+export const registerPushToken = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = res.locals.user
+    const { token } = req.body
+    if (!token) throw new CustomError(CustomErrorCode.REQUIRED_FIELD)
+
+    const updated = await updateUserDeviceInfo(user.id, user.deviceId, token)
+    if (!updated) throw new CustomError(CustomErrorCode.DATABASE_ERROR)
+
+    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({})).end()
   } catch (error) {
     next(error)
   }
