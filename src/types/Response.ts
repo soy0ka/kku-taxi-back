@@ -26,6 +26,7 @@ export enum CustomErrorCode {
   "TOKEN_NOT_FOUND" = "A103",
   "USER_NOT_FOUND" = "A104",
   "TEMPARAY_DISABLE" = "A105",
+  "DEVICE_NOT_FOUND" = "A106",
 
   "INVALID_AUTH_CODE" = "C101",
   "AUTH_CODE_EXPIRED" = "C102",
@@ -61,6 +62,7 @@ const errorMessages: Record<CustomErrorCodeType, ErrorDetail> = {
   "A102": { code: ApiStatusCode.UNAUTHORIZED, message: '인증에 실패하였습니다' },
   "A103": { code: ApiStatusCode.UNAUTHORIZED, message: '인증에 실패하였습니다' },
   "A104": { code: ApiStatusCode.UNAUTHORIZED, message: '인증에 실패하였습니다' },
+  "A106": { code: ApiStatusCode.UNAUTHORIZED, message: '디바이스 정보가 없습니다' },
   "A105": { code: ApiStatusCode.UNAUTHORIZED, message: '서비스 이용이 일시 혹은 영구적으로 제한되었습니다' },
   "C101": { code: ApiStatusCode.BAD_REQUEST, message: '인증코드가 만료되었습니다' },
   "C102": { code: ApiStatusCode.BAD_REQUEST, message: '인증코드가 만료되었습니다' },

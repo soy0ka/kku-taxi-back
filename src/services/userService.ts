@@ -1,3 +1,4 @@
+import { CustomError } from '@/classes/CustomError'
 import { findUserById, getUserDevices, updateUserDevice } from '@/models/userModel'
 import { CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
@@ -15,20 +16,12 @@ export const getUserInfo = async (id: number) => {
 
 export const getUserDevicesInfo = async (userId: number) => {
   const devices = await getUserDevices(userId)
-  return responseFormatter.success({ devices })
+  return devices
 }
 
-export const updateUserDeviceInfo = async (userId: number, deviceId: number, pushToken: string) => {
-  if (!deviceId || isNaN(deviceId)) {
-    throw new Error(CustomErrorCode.INVALID_PARAMS)
-  }
-  if (!pushToken) {
-    throw new Error(CustomErrorCode.REQUIRED_FIELD)
-  }
-
+export const updateUserDeviceInfo = async (userId: number, deviceId: string, pushToken: string) => {
   const updated = await updateUserDevice(userId, deviceId, pushToken)
-  if (!updated) {
-    throw new Error(CustomErrorCode.DATABASE_ERROR)
-  }
+  console.log(updated)
+  if (!updated) throw new CustomError(CustomErrorCode.DATABASE_ERROR)
   return responseFormatter.success({})
 }
