@@ -8,11 +8,12 @@ function success (data: object): ApiResponse {
 }
 
 function error (code: CustomErrorCodeType): ApiResponse {
+  const errorDetail = CustomErrorMessage(code)
   return {
     status: ApiResponseType.ERROR,
     error: {
       code,
-      message: CustomErrorMessage(code)
+      message: errorDetail.message
     }
   }
 }
