@@ -5,15 +5,18 @@ import { v4 as uuidv4 } from 'uuid'
 const prisma = new PrismaClient()
 
 export const findUserByEmail = async (email: string) => {
-  return await prisma.user.findUnique({ where: { email } })
+  return prisma.user.findUnique({ where: { email } })
 }
 
 export const findUserById = async (id: number) => {
-  return await prisma.user.findUnique({ where: { id } })
+  return prisma.user.findUnique({
+    select: { id: true, name: true, email: true, banned: true, bankaccount: true },
+    where: { id }
+  })
 }
 
 export const findUserByUuid = async (uuid: string) => {
-  return await prisma.user.findUnique({ where: { uuid } })
+  return prisma.user.findUnique({ where: { uuid } })
 }
 
 export const createUser = async (email: string) => {
@@ -22,7 +25,7 @@ export const createUser = async (email: string) => {
     uuid = uuidv4()
   } while (await findUserByUuid(uuid))
 
-  const user = await prisma.user.create({ data: { email, uuid, name: RandomName() } })
+  const user = prisma.user.create({ data: { email, uuid, name: RandomName() } })
   return user
 }
 

@@ -1,16 +1,16 @@
-import { getUserDevices, updateUserDevice } from '@/models/userModel'
+import { findUserById, getUserDevices, updateUserDevice } from '@/models/userModel'
 import { CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 
-export const getCurrentUserInfo = async (user: any) => {
-  if (!user) {
-    throw new Error(CustomErrorCode.USER_NOT_FOUND)
-  }
-  return responseFormatter.success(user)
+export const getCurrentUser = async (id: number) => {
+  const user = await findUserById(id)
+  const textId = user?.email.split('@')[0]
+  return { ...user, textId }
 }
 
-export const getUserInfo = async (id: string) => {
-  return responseFormatter.success({ id })
+export const getUserInfo = async (id: number) => {
+  const user = await findUserById(id)
+  return user
 }
 
 export const getUserDevicesInfo = async (userId: number) => {

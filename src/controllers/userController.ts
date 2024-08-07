@@ -1,23 +1,22 @@
-import { getCurrentUserInfo, getUserDevicesInfo, getUserInfo, updateUserDeviceInfo } from '@/services/userService'
+import { getCurrentUser, getUserDevicesInfo, updateUserDeviceInfo } from '@/services/userService'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 
 // GET /user/:idOrMe
-export const getCurrentUserOrById = async (req: Request, res: Response) => {
-  const { idOrMe } = req.params
-  const user = res.locals.user
-
+export const getCurrentUserOrById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let result
+    const { idOrMe } = req.params
+    const user = res.locals.user
+
     if (idOrMe === '@me') {
-      result = await getCurrentUserInfo(user)
+      const dbUser = await getCurrentUser(user.id)
+      return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(dbUser)).end()
     } else {
-      result = await getUserInfo(idOrMe)
+      throw new Error(CustomErrorCode.NO_PERMISSION)
     }
-    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(result)).end()
   } catch (error) {
-    return res.status(ApiStatusCode.UNAUTHORIZED).send(responseFormatter.error(CustomErrorCode.UNAUTHORIZED_TOKEN)).end()
+    next(error)
   }
 }
 

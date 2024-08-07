@@ -6,7 +6,7 @@ import { Router } from 'express'
 const router = Router()
 
 router.use(authMiddleware)
-router.get('/:id', getCurrentUserOrById)
+router.get('/:idOrMe', getCurrentUserOrById)
 router.use('/@me/devices', deviceRouter)
 
 export default router
