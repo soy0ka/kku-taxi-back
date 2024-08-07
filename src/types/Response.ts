@@ -19,11 +19,14 @@ export enum ApiStatusCode {
 export enum CustomErrorCode {
   "PAGE_NOT_FOUND" = "404",
   "METHOD_NOT_ALLOWED" = "405",
+  "TOO_MANY_REQUESTS" = "429",
+
   "UNAUTHORIZED_TOKEN" = "A101",
   "INVALID_TOKEN" = "A102",
   "TOKEN_NOT_FOUND" = "A103",
   "USER_NOT_FOUND" = "A104",
   "TEMPARAY_DISABLE" = "A105",
+
   "INVALID_AUTH_CODE" = "C101",
   "AUTH_CODE_EXPIRED" = "C102",
 
@@ -46,33 +49,38 @@ export enum CustomErrorCode {
 }
 export type CustomErrorCodeType = `${CustomErrorCode}`
 
-const errorMessages: Record<CustomErrorCodeType, string> = {
-  "404": '요청하신 경로를 찾을 수 없습니다',
-  "405": '요청한 메서드는 허용되지 않습니다',
-  "A101": '인증에 실패하였습니다',
-  "A102": '인증에 실패하였습니다',
-  "A103": '인증에 실패하였습니다',
-  "A104": '인증에 실패하였습니다',
-  "A105": '인증에 실패하였습니다',
-  "C101": '인증코드가 만료되었습니다',
-  "C102": '인증코드가 만료되었습니다',
-  "I101": '입력값이 잘못되었습니다',
-  "I102": '입력값이 잘못되었습니다',
-  "I103": '입력값이 잘못되었습니다',
-  "I104": '입력값이 잘못되었습니다',
-  "R101": '요청하신 데이터가 잘못되었습니다',
-  "U101": '채팅방 관련 문제가 발생했습니다',
-  "U201": '파티 관련 문제가 발생했습니다',
-  "U202": '파티 관련 문제가 발생했습니다',
-  "U203": '파티 관련 문제가 발생했습니다',
-  "P101": '권한 문제가 발생했습니다',
-  "P102": '이미 결제되었습니다',
-  "S101": '서버에서 오류가 발생했습니다',
-  "S999": '서버측에서 알 수 없는 오류가 발생했습니다'
+export interface ErrorDetail {
+  code: ApiStatusCode
+  message: string
+}
+const errorMessages: Record<CustomErrorCodeType, ErrorDetail> = {
+  "404": { code: ApiStatusCode.NOT_FOUND, message: '요청하신 페이지를 찾을 수 없습니다' },
+  "405": { code: ApiStatusCode.METHOD_NOT_ALLOWED, message: '요청한 메서드는 허용되지 않습니다' },
+  "429": { code: ApiStatusCode.TOO_MANY_REQUESTS, message: '시간당 요청 횟수를 초과하였습니다' },
+  "A101": { code: ApiStatusCode.UNAUTHORIZED, message: '인증에 실패하였습니다' },
+  "A102": { code: ApiStatusCode.UNAUTHORIZED, message: '인증에 실패하였습니다' },
+  "A103": { code: ApiStatusCode.UNAUTHORIZED, message: '인증에 실패하였습니다' },
+  "A104": { code: ApiStatusCode.UNAUTHORIZED, message: '인증에 실패하였습니다' },
+  "A105": { code: ApiStatusCode.UNAUTHORIZED, message: '서비스 이용이 일시 혹은 영구적으로 제한되었습니다' },
+  "C101": { code: ApiStatusCode.BAD_REQUEST, message: '인증코드가 만료되었습니다' },
+  "C102": { code: ApiStatusCode.BAD_REQUEST, message: '인증코드가 만료되었습니다' },
+  "I101": { code: ApiStatusCode.BAD_REQUEST, message: '필수 입력값이 누락되었습니다' },
+  "I102": { code: ApiStatusCode.BAD_REQUEST, message: '입력값이 잘못되었습니다' },
+  "I103": { code: ApiStatusCode.BAD_REQUEST, message: '이메일 형식이 잘못되었습니다' },
+  "I104": { code: ApiStatusCode.BAD_REQUEST, message: '만료된 날짜입니다' },
+  "R101": { code: ApiStatusCode.BAD_REQUEST, message: '요청하신 데이터가 잘못되었습니다' },
+  "U101": { code: ApiStatusCode.NOT_FOUND, message: '채팅방 관련 문제가 발생했습니다' },
+  "U201": { code: ApiStatusCode.NOT_FOUND, message: '파티 관련 문제가 발생했습니다' },
+  "U202": { code: ApiStatusCode.BAD_REQUEST, message: '이미 가입된 파티입니다' },
+  "U203": { code: ApiStatusCode.BAD_REQUEST, message: '파티가 꽉 찼습니다' },
+  "P101": { code: ApiStatusCode.FORBIDDEN, message: '권한이 없습니다' },
+  "P102": { code: ApiStatusCode.BAD_REQUEST, message: '이미 결제요청 되었습니다' },
+  "S101": { code: ApiStatusCode.INTERNAL_SERVER_ERROR, message: '서버에서 오류가 발생했습니다' },
+  "S999": { code: ApiStatusCode.INTERNAL_SERVER_ERROR, message: '서버측에서 알 수 없는 오류가 발생했습니다' }
 }
 
-export function CustomErrorMessage(code: CustomErrorCodeType): string {
-  return errorMessages[code] || '알 수 없는 오류가 발생했습니다';
+export function CustomErrorMessage(code: CustomErrorCodeType): ErrorDetail {
+  return errorMessages[code] || errorMessages['S999']
 }
 
 export interface ApiErrorResponse {
