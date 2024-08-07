@@ -20,3 +20,25 @@ export const findChatRoomById = async (chatRoomId: number) => {
     select: { id: true, users: true }
   })
 }
+
+export const getChatRoomsByUserId = async (userId: number) => {
+  return prisma.chatRoom.findMany({
+    select: {
+      id: true,
+      name: true,
+      Party: {
+        select: {
+          id: true,
+          name: true,
+          fromPlace: true,
+          toPlace: true,
+          departure: true
+        }
+      }
+    },
+    where: {
+      users: { some: { id: userId } },
+      NOT: { isdeleted: true }
+    }
+  })
+}
