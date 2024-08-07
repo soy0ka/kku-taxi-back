@@ -1,5 +1,5 @@
 import { HHMMSSMMM } from '@/utils/formatter/date'
-import { Logger } from '@/utils/logging/logger'
+import { LogColor, Logger } from '@/utils/logging/logger'
 import { NextFunction, Request, Response } from 'express'
 
 const logMiddleware = async (req: Request, res: Response, next: NextFunction) => {
@@ -21,7 +21,19 @@ const logMiddleware = async (req: Request, res: Response, next: NextFunction) =>
     const baseLog = Logger.log(String(res.statusCode)).put(`${req.method} ${req.originalUrl}`)
       .next('IP').put(ip)
       .next('user-agent').put(userAgent)
-      .next('Response Time').put(`${responseTime}ms (${HHMMSSMMM(startTime)} ~ ${HHMMSSMMM(finishedTime)})`)
+
+    // 응답시간에 따라 색상을 다르게 표시
+    const responseTimeView = `${responseTime}ms (${HHMMSSMMM(startTime)} ~ ${HHMMSSMMM(finishedTime)})`
+    if (responseTime > 1000) {
+      Logger.warning().put('Response Time is too long').out()
+      baseLog.next('Response Time').putS([LogColor.F_RED], responseTimeView)
+    } else if (responseTime > 500) {
+      baseLog.next('Response Time').putS([LogColor.F_YELLOW], responseTimeView)
+    } else if (responseTime < 100) {
+      baseLog.next('Response Time').putS([LogColor.F_GREEN], responseTimeView)
+    } else {
+      baseLog.next('Response Time').put(responseTimeView)
+    }
 
     if (platform) baseLog.next('Platform').put(platform)
     if (deviceID) baseLog.next('Device ID').put(deviceID)
