@@ -1,26 +1,26 @@
+import { CustomError } from '@/classes/CustomError'
 import { generateCode, getUserOrCreate, signToken, verifyCode } from '@/services/authService'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import Mailer from '@/utils/notifications/mailer'
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 
 // POST /auth/login
-export const login = async (req: Request, res: Response) => {
-  const { email } = req.body
-  if (!email) return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
-  if (!Mailer.MailRegex.test(email)) return res.status(ApiStatusCode.BAD_REQUEST).send(responseFormatter.error(CustomErrorCode.INVALID_EMAIL)).end()
-
+export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await getUserOrCreate(email)
+    const { email } = req.body
+    if (!email) throw new CustomError(CustomErrorCode.REQUIRED_FIELD)
+    if (!Mailer.MailRegex.test(email)) throw new CustomError(CustomErrorCode.INVALID_EMAIL)
 
-    if (user.banned) return res.status(ApiStatusCode.FORBIDDEN).send(responseFormatter.error(CustomErrorCode.TEMPARAY_DISABLE)).end()
+    const user = await getUserOrCreate(email)
+    if (user.banned) throw new CustomError(CustomErrorCode.TEMPARAY_DISABLE)
 
     const { code, expiredAt } = await generateCode(user.id)
     Mailer.sendAuthCode(email, code)
 
     return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ validtime: expiredAt })).end()
   } catch (error) {
-    return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(responseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
+    next(error)
   }
 }
 
