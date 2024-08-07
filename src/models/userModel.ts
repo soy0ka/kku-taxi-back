@@ -51,9 +51,9 @@ export const getUserDevices = async (userId: number) => {
   return prisma.tokens.findMany({ where: { userId } })
 }
 
-export const updateUserDevice = async (userId: number, deviceId: number, pushToken: string) => {
-  return prisma.tokens.update({
-    where: { id: deviceId },
-    data: { token: pushToken }
+export const updateUserDevice = async (userId: number, deviceId: string, pushToken: string) => {
+  return prisma.tokens.updateMany({
+    where: { device: deviceId, userId },
+    data: { deviceToken: pushToken }
   })
 }
