@@ -1,3 +1,4 @@
+import { HHMMSSMMM } from '@/utils/formatter/date'
 import { Logger } from '@/utils/logging/logger'
 import { NextFunction, Request, Response } from 'express'
 
@@ -12,11 +13,13 @@ const logMiddleware = async (req: Request, res: Response, next: NextFunction) =>
   const userId = res.locals.user?.id
 
   res.on('finish', () => {
-    const responseTime = Date.now() - startTime
+    const finishedTime = Date.now()
+    const responseTime = finishedTime - startTime
+
     const baseLog = Logger.log(String(res.statusCode)).put(`${req.method} ${req.originalUrl}`)
       .next('IP').put(ip)
       .next('user-agent').put(userAgent)
-      .next('Response Time').put(`${responseTime}ms`)
+      .next('Response Time').put(`${responseTime}ms (${HHMMSSMMM(startTime)} ~ ${HHMMSSMMM(finishedTime)})`)
 
     if (platform) baseLog.next('Platform').put(platform)
     if (deviceID) baseLog.next('Device ID').put(deviceID)
