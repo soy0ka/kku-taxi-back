@@ -12,6 +12,8 @@ const logMiddleware = async (req: Request, res: Response, next: NextFunction) =>
 
   const userId = res.locals.user?.id
 
+  res.locals.deviceID = deviceID
+
   res.on('finish', () => {
     const finishedTime = Date.now()
     const responseTime = finishedTime - startTime
