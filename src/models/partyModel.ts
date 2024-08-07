@@ -22,7 +22,7 @@ export const createParty = async (partyData: Prisma.PartyCreateInput) => {
 }
 
 export const findPartyById = async (partyId: number) => {
-  return prisma.party.findUnique({ where: { id: partyId } })
+  return prisma.party.findUnique({ where: { id: partyId }, include: { partyMemberships: true, _count: { select: { partyMemberships: true } } } })
 }
 
 export const findPartyMemberships = async (partyId: number, userId: number) => {
