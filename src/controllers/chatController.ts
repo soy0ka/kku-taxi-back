@@ -56,8 +56,8 @@ export const getMessagesByChatroomId = async (req: Request, res: Response, next:
     const isMember = await checkChatroomMembership(res.locals.user.id, Number(id))
     if (!isMember) throw new CustomError(CustomErrorCode.NO_PERMISSION)
 
-    const chatrooms = await getChatroomMessages(Number(id))
-    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(chatrooms)).end()
+    const messages = await getChatroomMessages(Number(id))
+    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(messages)).end()
   } catch (error: any) {
     next(error)
   }
