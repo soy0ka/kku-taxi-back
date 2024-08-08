@@ -1,16 +1,13 @@
-import { findUserById } from '@/models/userModel'
+import { checkTokenValidity, findUserById } from '@/models/userModel'
 import { CustomErrorCode } from '@/types/response'
 import JWT from '@/utils/auth/jwt'
-import { PrismaClient } from '@prisma/client'
 import { NextFunction, Request, Response } from 'express'
-
-const prisma = new PrismaClient()
 
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.header('Authorization')?.split('Bearer ')[1]
   if (!token) throw new Error(CustomErrorCode.UNAUTHORIZED_TOKEN)
   try {
-    const dbToken = await prisma.tokens.findFirst({ where: { token } })
+    const dbToken = await checkTokenValidity(token)
     if (!dbToken) throw new Error(CustomErrorCode.TOKEN_NOT_FOUND)
 
     const decoded = JWT.verify(token)

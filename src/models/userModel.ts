@@ -57,3 +57,7 @@ export const updateUserDevice = async (userId: number, deviceId: string, pushTok
     data: { deviceToken: pushToken }
   })
 }
+
+export const checkTokenValidity = async (token: string) => {
+  return prisma.tokens.findFirst({ where: { token } })
+}
