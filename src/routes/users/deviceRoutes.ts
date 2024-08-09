@@ -1,5 +1,5 @@
 // root: /users/devices
-import { getCurrentUserDevice, updateCurrentUserDevice } from '@/controllers/userController'
+import { getCurrentUserDevice, updateCurrentUserDevice } from '@/controllers/user.controller'
 import authMiddleware from '@/middlewares/auth'
 import methodNotAllowedHandler from '@/middlewares/methodNotAllowed'
 import { Router } from 'express'

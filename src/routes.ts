@@ -1,9 +1,9 @@
-import authRoutes from '@/routes/authRoutes'
+import authRoutes from '@/routes/auth.routes'
+import chatRoutes from '@/routes/chat.routes'
 import { Router } from 'express'
-import chatRoutes from './routes/chatRoutes'
 // import noticeRoutes from './modules/notice/noticeRoutes'
-import partyRoutes from '@/routes/partyRoutes'
-import userRoutes from '@/routes/userRoutes'
+import partyRoutes from '@/routes/party.routes'
+import userRoutes from '@/routes/user.routes'
 
 const router = Router()
 

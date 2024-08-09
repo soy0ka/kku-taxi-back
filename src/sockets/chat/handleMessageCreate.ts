@@ -1,5 +1,6 @@
-import { createMessage, findChatRoomById } from '@/models/chatModel'
-import { getUserDevices } from '@/models/userModel'
+import { findChatRoomById } from '@/models/chat.model'
+import { createMessage } from '@/models/message.model'
+import { getUserDevices } from '@/models/user.model'
 import { Message } from '@/types/system/chat'
 import { Logger } from '@/utils/logging/logger'
 import PushNotification from '@/utils/notifications/push'
