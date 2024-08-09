@@ -1,6 +1,6 @@
 import { CustomError } from '@/classes/CustomError'
-import { generateCode, getUserOrCreate, signToken, verifyCode } from '@/services/authService'
-import { updateUserDeviceInfo } from '@/services/userService'
+import { generateCode, getUserOrCreate, signToken, verifyCode } from '@/services/auth.service'
+import { updateUserDeviceInfo } from '@/services/user.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import Mailer from '@/utils/notifications/mailer'

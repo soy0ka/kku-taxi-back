@@ -1,6 +1,6 @@
 import { CustomError } from '@/classes/CustomError'
-import { createAuthCode, deleteAuthCode, getAuthCode } from '@/models/authcodeModel'
-import { createUser, findUserByEmail, saveToken } from '@/models/userModel'
+import { createAuthCode, deleteAuthCode, getAuthCode } from '@/models/authcode.model'
+import { createUser, findUserByEmail, saveToken } from '@/models/user.model'
 import { CustomErrorCode } from '@/types/response'
 import JWT from '@/utils/auth/jwt'
 import { User } from '@prisma/client'

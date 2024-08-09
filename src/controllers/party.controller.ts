@@ -1,4 +1,4 @@
-import { createNewParty, getParties, joinParty } from '@/services/partyService'
+import { createNewParty, getParties, joinParty } from '@/services/party.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import ResponseFormatter from '@/utils/formatter/response'
 import { Request, Response } from 'express'
@@ -39,7 +39,7 @@ export const creatPartyController = async (req: Request, res: Response) => {
       maxSize
     })
 
-    return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({ result })).end()
+    return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success(result)).end()
   } catch (error: any) {
     return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(ResponseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
   }

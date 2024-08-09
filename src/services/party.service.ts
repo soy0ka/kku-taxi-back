@@ -1,4 +1,4 @@
-import { createParty, findParties, findPartyById } from '@/models/partyModel'
+import { createParty, findParties, findPartyById } from '@/models/party.model'
 import { CreatePartyOptions } from '@/types/system/party'
 import RandomName from '@/utils/RandomName'
 import { Prisma } from '@prisma/client'

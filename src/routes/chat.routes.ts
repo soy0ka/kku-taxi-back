@@ -1,5 +1,5 @@
 // root: /chats
-import { getChatroomDetailsById, getCurrentUserChatOrById, getMessagesByChatroomId } from '@/controllers/chatController'
+import { getChatroomDetailsById, getCurrentUserChatOrById, getMessagesByChatroomId } from '@/controllers/chat.controller'
 import authMiddleware from '@/middlewares/auth'
 import { Router } from 'express'
 

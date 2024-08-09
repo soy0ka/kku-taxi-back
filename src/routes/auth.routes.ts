@@ -1,4 +1,4 @@
-import { login, verifyAuthCode } from '@/controllers/authController'
+import { login, verifyAuthCode } from '@/controllers/auth.controller'
 import { Router } from 'express'
 
 const router = Router()

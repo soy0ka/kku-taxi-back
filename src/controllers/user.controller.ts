@@ -1,5 +1,5 @@
 import { CustomError } from '@/classes/CustomError'
-import { getCurrentUser, getUserDevicesInfo, updateUserDeviceInfo } from '@/services/userService'
+import { getCurrentUser, getUserDevicesInfo, updateUserDeviceInfo } from '@/services/user.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'

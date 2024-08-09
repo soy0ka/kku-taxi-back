@@ -1,4 +1,4 @@
-import { checkTokenValidity, findUserById } from '@/models/userModel'
+import { checkTokenValidity, findUserById } from '@/models/user.model'
 import { CustomErrorCode } from '@/types/response'
 import JWT from '@/utils/auth/jwt'
 import { NextFunction, Request, Response } from 'express'

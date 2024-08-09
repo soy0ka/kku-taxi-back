@@ -4,7 +4,7 @@
 // router.post('/:id/reports') // 채팅 신고
 
 import { CustomError } from '@/classes/CustomError'
-import { checkChatroomMembership, getChatroomDetails, getChatroomListByUserId, getChatroomMessages } from '@/services/chatService'
+import { checkChatroomMembership, getChatroomDetails, getChatroomListByUserId, getChatroomMessages } from '@/services/chat.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'

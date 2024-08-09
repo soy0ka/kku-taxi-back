@@ -18,7 +18,8 @@ export const findParties = async (partyConditions: any, skip: number, pageSize: 
 }
 
 export const createParty = async (partyData: Prisma.PartyCreateInput) => {
-  return prisma.party.create({ data: partyData })
+  const party = await prisma.party.create({ data: partyData, include: { partyMemberships: true, _count: { select: { partyMemberships: true } } } })
+  return party
 }
 
 export const findPartyById = async (partyId: number) => {
@@ -31,21 +32,6 @@ export const findPartyMemberships = async (partyId: number, userId: number) => {
 
 export const createPartyMembership = async (membershipData: any) => {
   return prisma.partyMembership.create({ data: membershipData })
-}
-
-export const findChatRoomById = async (chatRoomId: number) => {
-  return prisma.chatRoom.findUnique({
-    where: { id: chatRoomId },
-    select: { id: true, users: true }
-  })
-}
-
-export const updateChatRoom = async (chatRoomId: number, userId: number) => {
-  return prisma.chatRoom.update({
-    where: { id: chatRoomId },
-    data: { users: { connect: { id: userId } } },
-    select: { users: true, id: true }
-  })
 }
 
 export const updateParty = async (partyId: number, data: any) => {

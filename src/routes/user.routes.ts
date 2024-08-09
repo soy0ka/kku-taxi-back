@@ -1,4 +1,4 @@
-import { getCurrentUserOrById } from '@/controllers/userController'
+import { getCurrentUserOrById } from '@/controllers/user.controller'
 import authMiddleware from '@/middlewares/auth'
 import deviceRouter from '@/routes/users/deviceRoutes'
 import { Router } from 'express'

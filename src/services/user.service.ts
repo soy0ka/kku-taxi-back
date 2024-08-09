@@ -1,5 +1,5 @@
 import { CustomError } from '@/classes/CustomError'
-import { findUserById, getUserDevices, updateUserDevice } from '@/models/userModel'
+import { findUserById, getUserDevices, updateUserDevice } from '@/models/user.model'
 import { CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 

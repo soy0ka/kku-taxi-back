@@ -1,4 +1,5 @@
-import { checkMembership, findChatRoomById, getChatRoomsByUserId, getMessagesByRoomId } from '@/models/chatModel'
+import { checkMembership, findChatRoomById, getChatRoomsByUserId } from '@/models/chat.model'
+import { getMessagesByRoomId } from '@/models/message.model'
 
 export const getChatroomListByUserId = async (userId: number) => {
   return getChatRoomsByUserId(userId)

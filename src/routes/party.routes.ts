@@ -1,4 +1,4 @@
-import { creatPartyController, getPartiesController, getPartyChatController, joinPartyController, payForPartyController } from '@/controllers/partyController'
+import { creatPartyController, getPartiesController, getPartyChatController, joinPartyController, payForPartyController } from '@/controllers/party.controller'
 import authMiddleware from '@/middlewares/auth'
 import notFoundHandler from '@/middlewares/notfound'
 import { Router } from 'express'
