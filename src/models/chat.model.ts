@@ -74,3 +74,5 @@ export const checkMembership = async (userId: number, chatRoomId: number) => {
 
   return !!membership
 }
+
+export const createChatRoomByParty

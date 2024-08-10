@@ -1,9 +1,13 @@
-import { ApiStatusCode, CustomErrorCode } from '@/types/response'
-import ResponseFormatter from '@/utils/formatter/response'
+import { CustomError } from '@/classes/CustomError'
+import { CustomErrorCode } from '@/types/response'
 import { NextFunction, Request, Response } from 'express'
 
 const methodNotAllowedHandler = async (req: Request, res: Response, next: NextFunction) => {
-  res.status(ApiStatusCode.METHOD_NOT_ALLOWED).send(ResponseFormatter.error(CustomErrorCode.METHOD_NOT_ALLOWED)).end()
+  try {
+    throw new CustomError(CustomErrorCode.METHOD_NOT_ALLOWED)
+  } catch (error) {
+    next(error)
+  }
 }
 
 export default methodNotAllowedHandler

@@ -249,7 +249,7 @@ export class Logger {
   }
 
   private static get directoryPath ():string {
-    return `./dist/${SETTINGS.log.directory}/${Logger.subject}`
+    return `./${SETTINGS.log.directory}/${Logger.subject}`
   }
 
   private readonly type:LogLevel

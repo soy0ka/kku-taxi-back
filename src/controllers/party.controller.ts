@@ -1,10 +1,10 @@
 import { createNewParty, getParties, joinParty } from '@/services/party.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import ResponseFormatter from '@/utils/formatter/response'
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 
 // GET /party
-export const getPartiesController = async (req: Request, res: Response) => {
+export const getPartiesController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { direction, page = '1', size = '10' } = req.query
     const pageNumber = parseInt(page as string, 10) || 1
@@ -15,13 +15,13 @@ export const getPartiesController = async (req: Request, res: Response) => {
     const result = await getParties(direction as string, pageNumber, pageSize)
 
     return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success(result)).end()
-  } catch (error: any) {
-    return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(ResponseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
+  } catch (error) {
+    next(error)
   }
 }
 
 // POST /party
-export const creatPartyController = async (req: Request, res: Response) => {
+export const creatPartyController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = res.locals.user.id
     const { description, dateTime, departure, arrival, maxSize } = req.body
@@ -40,39 +40,39 @@ export const creatPartyController = async (req: Request, res: Response) => {
     })
 
     return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success(result)).end()
-  } catch (error: any) {
-    return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(ResponseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
+  } catch (error) {
+    next(error)
   }
 }
 
 // POST /party/:id/pay
-export const payForPartyController = async (req: Request, res: Response) => {
+export const payForPartyController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // const userId = res.locals.user.id
     // const { partyId, price, totalPrice } = req.body
     // const result = await payForParty(userId, partyId, price, totalPrice)
     // return res.status(ApiStatusCode.SUCCESS).send(result).end()
-  } catch (error: any) {
-    return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(error.message)).end()
+  } catch (error) {
+    next(error)
   }
 }
 
 // POST /party/:id/join
-export const joinPartyController = async (req: Request, res: Response) => {
+export const joinPartyController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = res.locals.user.id
     const { id } = req.params
-    if (!id) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
+    if (!id) throw new Error(CustomErrorCode.REQUIRED_FIELD)
 
     const result = await joinParty(userId, parseInt(id))
     return res.status(ApiStatusCode.SUCCESS).send(result).end()
-  } catch (error: any) {
-    return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(error.message)).end()
+  } catch (error) {
+    next(error)
   }
 }
 
 // GET /party/:id
-export const getPartyChatController = async (req: Request, res: Response) => {
+export const getPartyChatController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // const { id } = req.params
     // if (!id) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
@@ -80,6 +80,6 @@ export const getPartyChatController = async (req: Request, res: Response) => {
     // const result = await getPartyChat(parseInt(id, 10))
     // return res.status(ApiStatusCode.SUCCESS).send(result).end()
   } catch (error) {
-    return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(ResponseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
+    next(error)
   }
 }

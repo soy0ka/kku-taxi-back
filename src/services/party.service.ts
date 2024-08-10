@@ -1,3 +1,4 @@
+import { createChatRoomByPartyId } from '@/models/chat.model'
 import { createParty, findParties, findPartyById } from '@/models/party.model'
 import { CreatePartyOptions } from '@/types/system/party'
 import RandomName from '@/utils/RandomName'
@@ -31,8 +32,10 @@ export const createNewParty = async (options: CreatePartyOptions) => {
     partyMemberships: { create: { User: { connect: { id: options.userId } } } },
     chatRoom: { create: { name: `${name} 채팅방`, users: { connect: { id: options.userId } } } }
   }
+  const party = await createParty(partyData)
+  const chatroom = await createChatRoomByPartyId(party.id, name)
 
-  return createParty(partyData)
+  return { ...party, chatRoomId: chatroom.id }
 }
 
 export const checkIsJoined = async (userId: number, partyId: number) => {

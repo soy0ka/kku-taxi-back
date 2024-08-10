@@ -72,6 +72,8 @@ model ChatRoom {
   isdeleted Boolean         @default(false)
   ReportLog ChatReportLog[]
   Party     Party[]
+
+  @@index([isdeleted])
 }
 
 model Message {
@@ -84,6 +86,8 @@ model Message {
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
   isdeleted  Boolean  @default(false)
   isSystem   Boolean  @default(false)
+
+  @@index([isdeleted])
 }
 
 model ChatReportLog {
@@ -124,6 +128,9 @@ model Party {
   chatRoom         ChatRoom          @relation(fields: [chatRoomId], references: [id])
   fromPlace        Place             @relation("PartyFromPlace", fields: [fromPlaceId], references: [id])
   toPlace          Place             @relation("PartyToPlace", fields: [toPlaceId], references: [id])
+
+  @@index([isdone])
+  @@index([deletedAt])
 }
 
 model PartyMembership {
