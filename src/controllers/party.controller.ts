@@ -64,8 +64,8 @@ export const joinPartyController = async (req: Request, res: Response, next: Nex
     const { id } = req.params
     if (!id) throw new Error(CustomErrorCode.REQUIRED_FIELD)
 
-    const result = await joinParty(userId, parseInt(id))
-    return res.status(ApiStatusCode.SUCCESS).send(result).end()
+    const chatRoomId = await joinParty(userId, parseInt(id))
+    return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({ chatRoomId })).end()
   } catch (error) {
     next(error)
   }

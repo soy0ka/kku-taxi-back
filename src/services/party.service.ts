@@ -61,6 +61,7 @@ export const joinParty = async (userId: number, partyId: number) => {
 
   const roomId = await joinPartyById(userId, partyId)
   await sendJoinSystemMessage(userId, roomId)
+  return roomId
 }
 // app.get('/join/:id', async (req: Request, res: Response) => {
 //   const { id } = req.params
