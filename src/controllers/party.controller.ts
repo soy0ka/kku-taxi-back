@@ -60,11 +60,11 @@ export const payForPartyController = async (req: Request, res: Response, next: N
 // POST /party/:id/join
 export const joinPartyController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = res.locals.user.id
+    const user = res.locals.user
     const { id } = req.params
     if (!id) throw new Error(CustomErrorCode.REQUIRED_FIELD)
 
-    const chatRoomId = await joinParty(userId, parseInt(id))
+    const chatRoomId = await joinParty(user, parseInt(id))
     return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({ chatRoomId })).end()
   } catch (error) {
     next(error)

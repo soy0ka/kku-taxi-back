@@ -2,8 +2,8 @@ export interface Sender {
   id: number
   name: string
   textId: string
-  profileImage: string
-  email: string
+  profileImage?: string
+  email?: string
 }
 
 export interface Message {

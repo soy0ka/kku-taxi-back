@@ -1,5 +1,7 @@
 import { CustomError } from '@/classes/CustomError'
+import { createMessage } from '@/models/message.model'
 import { createParty, findParties, findPartyById, joinPartyById } from '@/models/party.model'
+import { emitCustomEvent } from '@/sockets/chatWebSocket'
 import { CustomErrorCode } from '@/types/response'
 import { CreatePartyOptions } from '@/types/system/party'
 import RandomName from '@/utils/RandomName'
@@ -44,23 +46,31 @@ export const checkIsJoined = async (userId: number, partyId: number) => {
   return party.partyMemberships.some(membership => membership.userId === userId)
 }
 
-export const sendJoinSystemMessage = async (userId: number, roomId: number) => {
-//   await createMessage({
-//     roomId,
-//     content: '파티에 참여했습니다',
-//     senderId: userId,
-//     isSystem: true
-//   })
+export const sendJoinSystemMessage = async (user: { id: number, name: string }, roomId: number) => {
+  const message = {
+    roomId,
+    content: `${user.name}님이 파티에 참여했습니다`,
+    senderId: user.id,
+    isSystem: true,
+    sender: { id: user.id, name: '시스템', textId: 'system' },
+    timestamp: new Date()
+  }
+  await createMessage(message)
+
+  await emitCustomEvent('messageCreate', {
+    room: String(roomId),
+    data: message
+  })
 }
 
-export const joinParty = async (userId: number, partyId: number) => {
+export const joinParty = async (user: { id: number, name: string }, partyId: number) => {
   const party = await findPartyById(partyId)
   if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
-  if (party.partyMemberships.some(membership => membership.userId === userId)) throw new CustomError(CustomErrorCode.ALREADY_PARTY_MEMEBER)
+  if (party.partyMemberships.some(membership => membership.userId === user.id)) throw new CustomError(CustomErrorCode.ALREADY_PARTY_MEMEBER)
   if (party._count.partyMemberships >= party.maxSize) throw new CustomError(CustomErrorCode.PARTY_FULL)
 
-  const roomId = await joinPartyById(userId, partyId)
-  await sendJoinSystemMessage(userId, roomId)
+  const roomId = await joinPartyById(user.id, partyId)
+  await sendJoinSystemMessage(user, roomId)
   return roomId
 }
 // app.get('/join/:id', async (req: Request, res: Response) => {
