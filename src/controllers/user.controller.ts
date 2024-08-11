@@ -1,5 +1,5 @@
 import { CustomError } from '@/classes/CustomError'
-import { getCurrentUser, getUserDevicesInfo, updateUserDeviceInfo } from '@/services/user.service'
+import { getCurrentUser, getUserDevicesInfo, regiseterBankAccountByUserId, updateUserDeviceInfo } from '@/services/user.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'
@@ -15,6 +15,26 @@ export const getCurrentUserOrById = async (req: Request, res: Response, next: Ne
       return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(dbUser)).end()
     } else {
       throw new Error(CustomErrorCode.NO_PERMISSION)
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
+// POST /user/:idOrMe/bankaccount
+export const registerBankAccount = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { idOrMe } = req.params
+    const user = res.locals.user
+    const { bankName, accountNumber, accountHolder } = req.body
+
+    if (idOrMe === '@me') {
+      if (!bankName || !accountNumber || !accountHolder) throw new CustomError(CustomErrorCode.REQUIRED_FIELD)
+      const account = await regiseterBankAccountByUserId(user.id, bankName, accountNumber, accountHolder)
+
+      return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(account)).end()
+    } else {
+      throw new CustomError(CustomErrorCode.NO_PERMISSION)
     }
   } catch (error) {
     next(error)

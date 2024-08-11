@@ -1,4 +1,5 @@
 import { CustomError } from '@/classes/CustomError'
+import { createBankAccount, findBankAccountByUserId, updateBankAccount } from '@/models/bankAccount.model'
 import { findUserById, getUserDevices, updateUserDevice } from '@/models/user.model'
 import { CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
@@ -24,4 +25,28 @@ export const updateUserDeviceInfo = async (userId: number, deviceId: string, pus
   console.log(updated)
   if (!updated) throw new CustomError(CustomErrorCode.DATABASE_ERROR)
   return responseFormatter.success({})
+}
+
+export const regiseterBankAccountByUserId = async (userId: number, bankName: string, accountNumber: string, accountHolder: string) => {
+  const dbAccount = await findBankAccountByUserId(userId)
+  if (!dbAccount) {
+    const account = await createBankAccount({
+      userId,
+      bankName,
+      account: accountNumber,
+      holder: accountHolder
+    })
+
+    if (!account) throw new CustomError(CustomErrorCode.DATABASE_ERROR)
+    return account
+  } else {
+    const account = await updateBankAccount(userId, {
+      bankName,
+      account: accountNumber,
+      holder: accountHolder
+    })
+
+    if (!account) throw new CustomError(CustomErrorCode.DATABASE_ERROR)
+    return account
+  }
 }
