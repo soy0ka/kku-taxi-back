@@ -1,4 +1,6 @@
-import { createParty, findParties, findPartyById } from '@/models/party.model'
+import { CustomError } from '@/classes/CustomError'
+import { createParty, findParties, findPartyById, joinPartyById } from '@/models/party.model'
+import { CustomErrorCode } from '@/types/response'
 import { CreatePartyOptions } from '@/types/system/party'
 import RandomName from '@/utils/RandomName'
 import { Prisma } from '@prisma/client'
@@ -42,13 +44,24 @@ export const checkIsJoined = async (userId: number, partyId: number) => {
   return party.partyMemberships.some(membership => membership.userId === userId)
 }
 
-export const joinParty = async (userId: number, partyId: number) => {
-  const party = await findPartyById(partyId)
-  if (!party) return { success: false, message: 'Not Exists' }
-  if (party.partyMemberships.some(membership => membership.userId === userId)) return { success: false, message: 'Already Joined' }
-  if (party._count.partyMemberships >= party.maxSize) return { success: false, message: 'Party Full' }
+export const sendJoinSystemMessage = async (userId: number, roomId: number) => {
+//   await createMessage({
+//     roomId,
+//     content: '파티에 참여했습니다',
+//     senderId: userId,
+//     isSystem: true
+//   })
 }
 
+export const joinParty = async (userId: number, partyId: number) => {
+  const party = await findPartyById(partyId)
+  if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
+  if (party.partyMemberships.some(membership => membership.userId === userId)) throw new CustomError(CustomErrorCode.ALREADY_PARTY_MEMEBER)
+  if (party._count.partyMemberships >= party.maxSize) throw new CustomError(CustomErrorCode.PARTY_FULL)
+
+  const roomId = await joinPartyById(userId, partyId)
+  await sendJoinSystemMessage(userId, roomId)
+}
 // app.get('/join/:id', async (req: Request, res: Response) => {
 //   const { id } = req.params
 //   if (!id) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()

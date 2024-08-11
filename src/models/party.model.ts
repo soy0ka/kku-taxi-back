@@ -48,3 +48,9 @@ export const findPartyByChatRoomId = async (chatRoomId: number) => {
 export const findPartyByOwnerId = async (ownerId: number) => {
   return prisma.party.findMany({ where: { ownerId }, select: { id: true, name: true, departure: true, fromPlace: true, toPlace: true, _count: { select: { partyMemberships: true } }, maxSize: true } })
 }
+
+export const joinPartyById = async (userId: number, partyId: number) => {
+  const room = await prisma.chatRoom.update({ where: { id: partyId }, data: { users: { connect: { id: userId } } } })
+  await prisma.partyMembership.create({ data: { userId, partyId } })
+  return room.id
+}

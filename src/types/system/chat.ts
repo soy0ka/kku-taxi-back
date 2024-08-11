@@ -3,6 +3,7 @@ export interface Sender {
   name: string
   textId: string
   profileImage: string
+  email: string
 }
 
 export interface Message {
