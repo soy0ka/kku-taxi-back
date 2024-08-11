@@ -11,8 +11,10 @@ export const sendRequest = async (body: object) => {
         'Content-Type': 'application/json'
       })
       .send(body)
+      .then(res => res.body)
 
-    Logger.info('Push Notification HTTP Request').put(response).out()
+    Logger.info('Push Notification HTTP Request').put(response.data[0]?.status)
+      .next('id').put(response.data[0]?.id).out()
   } catch (error) {
     Logger.error('Push Notification HTTP Request').put(error).out()
   }

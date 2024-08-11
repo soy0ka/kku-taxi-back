@@ -10,11 +10,11 @@ import { emitMessage } from './emitMessage'
 export const handleMessageCreate = async (io: Namespace, socket: Socket, message: Message) => {
   try {
     const dbMessage = await createMessage(message)
-
     const sender = {
       id: message.sender.id,
       name: message.sender.name,
       textId: message.sender.textId,
+      email: message.sender.email,
       profileImage: message.sender.profileImage
     }
 
