@@ -75,4 +75,11 @@ export const checkMembership = async (userId: number, chatRoomId: number) => {
   return !!membership
 }
 
-export const createChatRoomByParty
+export const createChatRoomByPartyId = async (partyId: number, name: string) => {
+  return prisma.chatRoom.create({
+    data: {
+      name,
+      Party: { connect: { id: partyId } }
+    }
+  })
+}

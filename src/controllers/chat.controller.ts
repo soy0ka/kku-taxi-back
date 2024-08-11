@@ -18,7 +18,7 @@ export const getCurrentUserChatOrById = async (req: Request, res: Response, next
 
     if (idOrMe === '@me') {
       const chatrooms = await getChatroomListByUserId(user.id)
-      return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success({ chatrooms })).end()
+      return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(chatrooms)).end()
     } else {
       // 특정 사용자 채팅 목록 조회 (미구현)
       // getChatroomListByUserId(Number(idOrMe))
