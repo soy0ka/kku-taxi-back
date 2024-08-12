@@ -1,6 +1,7 @@
 import { HHMMSSMMM } from '@/utils/formatter/date'
 import { LogColor, Logger } from '@/utils/logging/logger'
 import { NextFunction, Request, Response } from 'express'
+import { v4 } from 'uuid'
 
 const logMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const startTime = Date.now()
@@ -13,6 +14,10 @@ const logMiddleware = async (req: Request, res: Response, next: NextFunction) =>
   const userId = res.locals.user?.id
 
   res.locals.deviceID = deviceID
+  res.locals.ip = ip
+  res.locals.userAgent = userAgent
+  res.locals.platform = platform
+  res.locals.requestId = v4()
 
   res.on('finish', () => {
     const finishedTime = Date.now()
@@ -35,6 +40,7 @@ const logMiddleware = async (req: Request, res: Response, next: NextFunction) =>
       baseLog.next('Response Time').put(responseTimeView)
     }
 
+    baseLog.next('Request-id').put(res.locals.requestId)
     if (platform) baseLog.next('Platform').put(platform)
     if (deviceID) baseLog.next('Device ID').put(deviceID)
     if (userId) baseLog.next('User ID').put(userId).out()

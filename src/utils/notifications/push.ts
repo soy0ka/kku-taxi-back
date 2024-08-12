@@ -13,8 +13,7 @@ export const sendRequest = async (body: object) => {
       .send(body)
       .then(res => res.body)
 
-    Logger.info('Push Notification HTTP Request').put(response.data[0]?.status)
-      .next('id').put(response.data[0]?.id).out()
+    return response
   } catch (error) {
     Logger.error('Push Notification HTTP Request').put(error).out()
   }
@@ -29,8 +28,12 @@ export const send = async (expoPushToken: string | string[], title: string, mess
   }
 
   try {
-    await sendRequest(body)
-    Logger.info('Push Notification').put('sent').out()
+    const response = await sendRequest(body)
+    Logger.info('Push Notification').put(response.data[0]?.status)
+      .next('token').put(expoPushToken)
+      .next('id').put(response.data[0]?.id)
+      .next('message').put(message)
+      .out()
   } catch (error) {
     Logger.error('Push Notification').put(error).out()
   }
