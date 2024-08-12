@@ -58,6 +58,13 @@ export const updateUserDevice = async (userId: number, deviceId: string, pushTok
   })
 }
 
+export const deleteUserDeviceToken = async (userId: number, deviceId: number) => {
+  return prisma.tokens.delete({
+    where: { id: deviceId, userId },
+    select: { id: true }
+  })
+}
+
 export const checkTokenValidity = async (token: string) => {
   return prisma.tokens.findFirst({ where: { token } })
 }

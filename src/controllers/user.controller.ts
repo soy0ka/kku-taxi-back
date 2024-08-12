@@ -1,5 +1,5 @@
 import { CustomError } from '@/classes/CustomError'
-import { getCurrentUser, getUserDevicesInfo, regiseterBankAccountByUserId, updateUserDeviceInfo } from '@/services/user.service'
+import { deleteUserDevice, getCurrentUser, getUserDevicesInfo, regiseterBankAccountByUserId, updateUserDeviceInfo } from '@/services/user.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'
@@ -64,7 +64,28 @@ export const updateCurrentUserDevice = async (req: Request, res: Response, next:
 
     const result = await updateUserDeviceInfo(user.id, deviceId, pushToken)
 
-    return res.status(ApiStatusCode.SUCCESS).send(result).end()
+    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(result)).end()
+  } catch (error) {
+    next(error)
+  }
+}
+
+// DELETE /user/@me/devices/:deviceId
+export const deleteCurrentUserDevice = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = res.locals.user
+    const { deviceId } = req.params
+    const isNumeric = !Number.isNaN(parseInt(deviceId))
+
+    if (!deviceId || !isNumeric) throw new CustomError(CustomErrorCode.DEVICE_NOT_FOUND)
+    const currentUserDevices = await getUserDevicesInfo(user.id)
+
+    if (!currentUserDevices.some((device) => device.id === parseInt(deviceId))) {
+      throw new CustomError(CustomErrorCode.DEVICE_NOT_FOUND)
+    }
+
+    const result = await deleteUserDevice(user.id, parseInt(deviceId))
+    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(result)).end()
   } catch (error) {
     next(error)
   }
