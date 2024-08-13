@@ -42,6 +42,7 @@ export enum CustomErrorCode {
   "PARTY_NOT_FOUND" = "U201",
   "ALREADY_PARTY_MEMEBER" = "U202",
   "PARTY_FULL" = "U203",
+  "BANK_ACCOUNT_NOT_REGISTERED" = "U204",
 
   "NO_PERMISSION" = "P101",
   "ALREADY_PAID" =  "P102",
@@ -75,6 +76,7 @@ const errorMessages: Record<CustomErrorCodeType, ErrorDetail> = {
   "U201": { code: ApiStatusCode.NOT_FOUND, message: '파티 관련 문제가 발생했습니다' },
   "U202": { code: ApiStatusCode.BAD_REQUEST, message: '이미 가입된 파티입니다' },
   "U203": { code: ApiStatusCode.BAD_REQUEST, message: '파티가 꽉 찼습니다' },
+  "U204": { code: ApiStatusCode.BAD_REQUEST, message: '계좌가 등록되지 않았습니다' },
   "P101": { code: ApiStatusCode.FORBIDDEN, message: '권한이 없습니다' },
   "P102": { code: ApiStatusCode.BAD_REQUEST, message: '이미 결제요청 되었습니다' },
   "S101": { code: ApiStatusCode.INTERNAL_SERVER_ERROR, message: '서버에서 오류가 발생했습니다' },

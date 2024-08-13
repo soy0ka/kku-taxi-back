@@ -1,4 +1,4 @@
-import { createNewParty, getParties, joinParty } from '@/services/party.service'
+import { createNewParty, getParties, joinParty, payForParty } from '@/services/party.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import ResponseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'
@@ -48,10 +48,14 @@ export const creatPartyController = async (req: Request, res: Response, next: Ne
 // POST /party/:id/pay
 export const payForPartyController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // const userId = res.locals.user.id
-    // const { partyId, price, totalPrice } = req.body
-    // const result = await payForParty(userId, partyId, price, totalPrice)
-    // return res.status(ApiStatusCode.SUCCESS).send(result).end()
+    const { id } = req.params
+    const userId = res.locals.user.id
+    const { price, totalPrice } = req.body
+    if (!id || isNaN(parseInt(id))) throw new Error(CustomErrorCode.REQUIRED_FIELD)
+    if (!price || !totalPrice) throw new Error(CustomErrorCode.REQUIRED_FIELD)
+
+    const result = await payForParty(userId, parseInt(id), price, totalPrice)
+    return res.status(ApiStatusCode.SUCCESS).send(result).end()
   } catch (error) {
     next(error)
   }

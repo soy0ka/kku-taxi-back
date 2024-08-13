@@ -1,6 +1,7 @@
 import { CustomError } from '@/classes/CustomError'
+import { findBankAccountByUserId } from '@/models/bankAccount.model'
 import { createMessage } from '@/models/message.model'
-import { createParty, findParties, findPartyById, joinPartyById } from '@/models/party.model'
+import { createParty, findParties, findPartyById, joinPartyById, updateParty } from '@/models/party.model'
 import { emitCustomEvent } from '@/sockets/chatWebSocket'
 import { CustomErrorCode } from '@/types/response'
 import { CreatePartyOptions } from '@/types/system/party'
@@ -73,49 +74,38 @@ export const joinParty = async (user: { id: number, name: string }, partyId: num
   await sendJoinSystemMessage(user, roomId)
   return roomId
 }
-// app.get('/join/:id', async (req: Request, res: Response) => {
-//   const { id } = req.params
-//   if (!id) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
-//   const party = await prisma.party.findUnique({ where: { id: parseInt(id, 10) }, include: { _count: { select: { partyMemberships: true } } } })
-//   if (!party) return res.status(ApiStatusCode.NOT_FOUND).send(ResponseFormatter.error(CustomErrorCode.PARTY_NOT_FOUND)).end()
 
-//   const isJoined = await prisma.partyMembership.findFirst({ where: { partyId: party.id, userId: res.locals.user.id } })
-//   if (isJoined) return res.status(ApiStatusCode.FORBIDDEN).send(ResponseFormatter.error(CustomErrorCode.ALREADY_PARTY_MEMEBER)).end()
-//   if (party._count.partyMemberships >= party.maxSize) return res.status(ApiStatusCode.FORBIDDEN).send(ResponseFormatter.error(CustomErrorCode.PARTY_FULL)).end()
+export const payForParty = async (userId: number, partyId: number, price: number, totalPrice: number) => {
+  const party = await findPartyById(partyId)
+  if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
+  if (party.payRequested) throw new CustomError(CustomErrorCode.ALREADY_PAID)
+  if (!party.partyMemberships.some(membership => membership.userId === userId)) throw new CustomError(CustomErrorCode.NO_PERMISSION)
+  if (party.ownerId !== userId) throw new CustomError(CustomErrorCode.NO_PERMISSION)
 
-//   try {
-//     await prisma.partyMembership.create({ data: { partyId: party.id, userId: res.locals.user.id } })
-//     const room = await prisma.chatRoom.update({ where: { id: party.chatRoomId }, data: { users: { connect: { id: res.locals.user.id } } }, select: { users: true, id: true } })
-//     await prisma.message.create({ data: { content: `${res.locals.user.name}님이 파티에 참여했습니다`, senderId: res.locals.user.id, chatRoomId: room.id, isSystem: true } })
-//     Logger.log('ChatManager').put('System message sent').next('id').next('room').put(room.id).next('message').put(`${res.locals.user.name}님이 파티에 참여했습니다`).out()
-//     if (!room) return
-//     for (const user of room.users) {
-//       const tokens = await prisma.tokens.findMany({ where: { userId: user.id } })
-//       if (tokens.length === 0) continue
-//       for (const token of tokens) {
-//         if (!token.deviceToken) continue
-//         Notification.sendMessageNotification(token.deviceToken, '새로운 메시지', {
-//           content: `${res.locals.user.name}님이 파티에 참여했습니다`,
-//           senderName: '시스템',
-//           senderProfileImage: null,
-//           timestamp: new Date().toISOString()
-//         })
-//       }
-//     }
-//     emitEvent('messageCreate', { content: `${res.locals.user.name}님이 파티에 참여했습니다`, senderId: res.locals.user.id, roomId: room.id, isSystem: true, sender: { id: res.locals.user.id, name: res.locals.user.name, textId: res.locals.user.textId } })
+  const ownerAccount = await findBankAccountByUserId(party.ownerId)
+  if (!ownerAccount) throw new CustomError(CustomErrorCode.BANK_ACCOUNT_NOT_REGISTERED)
 
-//     if (party._count.partyMemberships + 1 === party.maxSize) {
-//       const tokens = await prisma.tokens.findMany({ where: { userId: party.ownerId } })
-//       if (tokens.length === 0) return
-//       for (const token of tokens) {
-//         if (!token.deviceToken) continue
-//         Notification.send(token.deviceToken, `${party.name} 파티의 모집이 완료되었습니다`, '사용자들과 채팅을 시작해보세요!')
-//       }
-//     }
+  const maskedName = ownerAccount.holder.split('').map((char, index) => index !== 1 ? char : '*').join('')
+  const message = `방장이 정산을 요청했습니다 \n계좌번호: ${ownerAccount.bankName} ${ownerAccount.account} (예금주: ${maskedName})\n금액: ${price}원 (총액: ${totalPrice}원)`
+  await createMessage({
+    content: message,
+    senderId: userId,
+    roomId: party.chatRoomId,
+    isSystem: true,
+    sender: {
+      id: userId,
+      name: '시스템',
+      textId: 'system'
+    },
+    timestamp: new Date()
+  })
 
-//     return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({})).end()
-//   } catch (e) {
-//     Logger.error('PartyJoin').put(e).out()
-//     return res.status(ApiStatusCode.INTERNAL_SERVER_ERROR).send(ResponseFormatter.error(CustomErrorCode.DATABASE_ERROR)).end()
-//   }
-// })
+  await emitCustomEvent('messageCreate', {
+    room: String(party.chatRoomId),
+    data: message
+  })
+
+  await updateParty(partyId, { payRequested: true })
+
+  return message
+}
