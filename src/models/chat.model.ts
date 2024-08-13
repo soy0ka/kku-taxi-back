@@ -16,6 +16,7 @@ export const findChatRoomById = async (chatRoomId: number) => {
           fromPlace: true,
           toPlace: true,
           departure: true,
+          payRequested: true,
           owner: {
             select: {
               id: true,

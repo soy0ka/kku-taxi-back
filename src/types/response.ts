@@ -78,7 +78,7 @@ const errorMessages: Record<CustomErrorCodeType, ErrorDetail> = {
   "U203": { code: ApiStatusCode.BAD_REQUEST, message: '파티가 꽉 찼습니다' },
   "U204": { code: ApiStatusCode.BAD_REQUEST, message: '계좌가 등록되지 않았습니다' },
   "P101": { code: ApiStatusCode.FORBIDDEN, message: '권한이 없습니다' },
-  "P102": { code: ApiStatusCode.BAD_REQUEST, message: '이미 결제요청 되었습니다' },
+  "P102": { code: ApiStatusCode.BAD_REQUEST, message: '이미 정산요청이 완료되었습니다' },
   "S101": { code: ApiStatusCode.INTERNAL_SERVER_ERROR, message: '서버에서 오류가 발생했습니다' },
   "S999": { code: ApiStatusCode.INTERNAL_SERVER_ERROR, message: '서버측에서 알 수 없는 오류가 발생했습니다' }
 }
