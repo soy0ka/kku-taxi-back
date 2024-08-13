@@ -109,3 +109,10 @@ export const payForParty = async (userId: number, partyId: number, price: number
 
   return message
 }
+
+export const getPartyMembers = async (partyId: number) => {
+  const party = await findPartyById(partyId)
+  if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
+
+  return party.partyMemberships
+}

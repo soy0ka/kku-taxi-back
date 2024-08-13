@@ -26,7 +26,14 @@ export const findPartyById = async (partyId: number) => {
   return prisma.party.findUnique({
     where: { id: partyId },
     include: {
-      partyMemberships: true,
+      partyMemberships: {
+        select: {
+          userId: true,
+          User: {
+            select: { id: true, name: true, email: true }
+          }
+        }
+      },
       _count: { select: { partyMemberships: true } }
     }
   })

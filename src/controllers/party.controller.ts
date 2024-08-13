@@ -1,4 +1,4 @@
-import { createNewParty, getParties, joinParty, payForParty } from '@/services/party.service'
+import { createNewParty, getParties, getPartyMembers, joinParty, payForParty } from '@/services/party.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import ResponseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'
@@ -83,6 +83,20 @@ export const getPartyChatController = async (req: Request, res: Response, next: 
 
     // const result = await getPartyChat(parseInt(id, 10))
     // return res.status(ApiStatusCode.SUCCESS).send(result).end()
+  } catch (error) {
+    next(error)
+  }
+}
+
+// GET /party/:id/members
+export const getPartyMembersController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params
+    if (!id) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.REQUIRED_FIELD)).end()
+    if (isNaN(parseInt(id))) return res.status(ApiStatusCode.BAD_REQUEST).send(ResponseFormatter.error(CustomErrorCode.INVALID_FIELD)).end()
+
+    const result = await getPartyMembers(parseInt(id, 10))
+    return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success(result)).end()
   } catch (error) {
     next(error)
   }
