@@ -4,7 +4,7 @@
 // router.post('/:id/reports') // 채팅 신고
 
 import { CustomError } from '@/classes/CustomError'
-import { checkChatroomMembership, getChatroomDetails, getChatroomListByUserId, getChatroomMessages } from '@/services/chat.service'
+import { checkChatMessageAccess, checkChatroomMembership, getChatroomDetails, getChatroomListByUserId, getChatroomMessages, reportMessageByMessage } from '@/services/chat.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import responseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'
@@ -58,6 +58,24 @@ export const getMessagesByChatroomId = async (req: Request, res: Response, next:
 
     const messages = await getChatroomMessages(Number(id))
     return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(messages)).end()
+  } catch (error: any) {
+    next(error)
+  }
+}
+
+// POST /chat/:id/reports
+export const reportMessage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params
+    const { reason } = req.body
+    if (!id || !reason) throw new CustomError(CustomErrorCode.REQUIRED_FIELD)
+
+    const isMember = await checkChatMessageAccess(res.locals.user.id, Number(id))
+    if (!isMember) throw new CustomError(CustomErrorCode.NO_PERMISSION)
+
+    const result = await reportMessageByMessage(res.locals.user.id, Number(id), reason)
+
+    return res.status(ApiStatusCode.SUCCESS).send(responseFormatter.success(result)).end()
   } catch (error: any) {
     next(error)
   }
