@@ -13,23 +13,43 @@ enum Sex {
   Other
 }
 
+enum FeedBackContent {
+  DIFFERENT_FARE
+  NO_SHOW
+  LATE
+  NO_PAYMENT
+  BAD_MANNER
+}
+
 model User {
-  id              Int               @id @default(autoincrement())
-  name            String
-  uuid            String            @unique
-  email           String            @unique
-  banned          Boolean           @default(false)
-  sex             Sex               @default(Other)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  authCode        authCode[]
-  Tokens          Tokens[]
-  bankaccount     BankAccount[]
-  chatrooms       ChatRoom[]        @relation("UserChatrooms")
-  Message         Message[]
-  ChatReportLog   ChatReportLog[]
-  PartyMembership PartyMembership[]
-  Party           Party[]
+  id               Int               @id @default(autoincrement())
+  name             String
+  uuid             String            @unique
+  email            String            @unique
+  banned           Boolean           @default(false)
+  sex              Sex               @default(Other)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  authCode         authCode[]
+  Tokens           Tokens[]
+  bankaccount      BankAccount[]
+  chatrooms        ChatRoom[]        @relation("UserChatrooms")
+  Message          Message[]
+  ChatReportLog    ChatReportLog[]
+  PartyMembership  PartyMembership[]
+  Party            Party[]
+  FeedBackGiven    FeedBack[]        @relation("FeedBackGiven")
+  FeedBackReceived FeedBack[]        @relation("FeedBackReceived")
+}
+
+model FeedBack {
+  id           Int             @id @default(autoincrement())
+  targetId     Int
+  reportUserId Int
+  content      FeedBackContent
+  createdAt    DateTime        @default(now())
+  User         User            @relation("FeedBackGiven", fields: [targetId], references: [id])
+  reportedBy   User            @relation("FeedBackReceived", fields: [reportUserId], references: [id])
 }
 
 model BankAccount {

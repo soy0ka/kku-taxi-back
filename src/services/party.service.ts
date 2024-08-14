@@ -1,5 +1,6 @@
 import { CustomError } from '@/classes/CustomError'
 import { findBankAccountByUserId } from '@/models/bankAccount.model'
+import { createFeedback } from '@/models/feedback.model'
 import { createMessage } from '@/models/message.model'
 import { createParty, findParties, findPartyById, joinPartyById, updateParty } from '@/models/party.model'
 import { emitCustomEvent } from '@/sockets/chatWebSocket'
@@ -115,4 +116,30 @@ export const getPartyMembers = async (partyId: number) => {
   if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
 
   return party.partyMemberships
+}
+type Feedback = Array<string>
+interface FeedbackArray {
+  userId: number
+  issue: Feedback
+}
+
+export const finishParty = async (partyId: number, userId: number, feedback: FeedbackArray[]) => {
+  const party = await findPartyById(partyId)
+  if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
+
+  const joined = await checkIsJoined(userId, partyId)
+  if (!joined) throw new CustomError(CustomErrorCode.NO_PERMISSION)
+
+  for (const fb of feedback) {
+    // 해당 사용자가 피드백을 줄 수 있는지 확인
+    const memberJoined = await checkIsJoined(fb.userId, partyId)
+    if (!memberJoined) continue
+
+    // 피드백을 각각 생성
+    for (const fbContent of fb.issue) {
+      await createFeedback(fb.userId, userId, fbContent as Prisma.FeedBackCreateInput['content'])
+    }
+  }
+
+  return true
 }
