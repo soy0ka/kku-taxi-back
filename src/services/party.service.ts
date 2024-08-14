@@ -126,7 +126,6 @@ interface FeedbackArray {
 
 export const finishParty = async (partyId: number, userId: number, feedback: FeedbackArray[]) => {
   const party = await findPartyById(partyId)
-  console.log('fin', party)
   if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
 
   const joined = await checkIsJoined(userId, partyId)
@@ -148,7 +147,6 @@ export const finishParty = async (partyId: number, userId: number, feedback: Fee
 
 export const exitParty = async (userId: number, partyId: number) => {
   const party = await findPartyById(partyId)
-  console.log('exit', party)
   if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
 
   const joined = await checkIsJoined(userId, partyId)
