@@ -1,6 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
+import appCheck from './middlewares/appCheck'
 import errorHandler from './middlewares/errorHandler'
 import logMiddleware from './middlewares/logging'
 import notFoundHandler from './middlewares/notfound'
@@ -13,7 +14,8 @@ app.use(
   helmet(),
   express.json(),
   express.urlencoded({ extended: true }),
-  logMiddleware
+  logMiddleware,
+  appCheck
 )
 app.use(router)
 app.use(
