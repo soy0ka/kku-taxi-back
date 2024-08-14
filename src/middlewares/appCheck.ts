@@ -13,6 +13,7 @@ const appCheckInstance = getAppCheck(firebaseApp)
 const appCheck = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const appCheckToken = req.header('X-App-Check-Token')
+    if (appCheckToken === process.env.APPCHECK_BYPASS) return next()
     if (!appCheckToken) throw new CustomError(CustomErrorCode.INVALID_TOKEN)
 
     const result = await appCheckInstance.verifyToken(appCheckToken).catch(() => false)
