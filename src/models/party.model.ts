@@ -51,6 +51,10 @@ export const updateParty = async (partyId: number, data: any) => {
   return prisma.party.update({ where: { id: partyId }, data })
 }
 
+export const deleteUserFromParty = async (partyId: number, userId: number) => {
+  return prisma.partyMembership.deleteMany({ where: { partyId, userId } })
+}
+
 export const findPartyByChatRoomId = async (chatRoomId: number) => {
   return prisma.party.findFirst({
     where: { chatRoomId },

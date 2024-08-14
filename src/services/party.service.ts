@@ -1,5 +1,6 @@
 import { CustomError } from '@/classes/CustomError'
 import { findBankAccountByUserId } from '@/models/bankAccount.model'
+import { deleteUserFromChatRoom } from '@/models/chat.model'
 import { createFeedback } from '@/models/feedback.model'
 import { createMessage } from '@/models/message.model'
 import { createParty, findParties, findPartyById, joinPartyById, updateParty } from '@/models/party.model'
@@ -125,6 +126,7 @@ interface FeedbackArray {
 
 export const finishParty = async (partyId: number, userId: number, feedback: FeedbackArray[]) => {
   const party = await findPartyById(partyId)
+  console.log('fin', party)
   if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
 
   const joined = await checkIsJoined(userId, partyId)
@@ -140,6 +142,19 @@ export const finishParty = async (partyId: number, userId: number, feedback: Fee
       await createFeedback(fb.userId, userId, fbContent as Prisma.FeedBackCreateInput['content'])
     }
   }
+
+  return true
+}
+
+export const exitParty = async (userId: number, partyId: number) => {
+  const party = await findPartyById(partyId)
+  console.log('exit', party)
+  if (!party) throw new CustomError(CustomErrorCode.PARTY_NOT_FOUND)
+
+  const joined = await checkIsJoined(userId, partyId)
+  if (!joined) throw new CustomError(CustomErrorCode.NO_PERMISSION)
+
+  await deleteUserFromChatRoom(party.chatRoomId, userId)
 
   return true
 }

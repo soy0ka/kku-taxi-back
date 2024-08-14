@@ -1,4 +1,4 @@
-import { createNewParty, finishParty, getParties, getPartyMembers, joinParty, payForParty } from '@/services/party.service'
+import { createNewParty, exitParty, finishParty, getParties, getPartyMembers, joinParty, payForParty } from '@/services/party.service'
 import { ApiStatusCode, CustomErrorCode } from '@/types/response'
 import ResponseFormatter from '@/utils/formatter/response'
 import { NextFunction, Request, Response } from 'express'
@@ -111,9 +111,13 @@ export const finishPartyController = async (req: Request, res: Response, next: N
     if (!id || !feedBack) throw new Error(CustomErrorCode.REQUIRED_FIELD)
     if (isNaN(parseInt(id))) throw new Error(CustomErrorCode.INVALID_FIELD)
 
-    await finishParty(parseInt(id), userId, feedBack)
+    const feedbackResult = await finishParty(parseInt(id), userId, feedBack)
+    const exitResult = await exitParty(userId, parseInt(id))
 
-    return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({})).end()
+    return res.status(ApiStatusCode.SUCCESS).send(ResponseFormatter.success({
+      feedbackResult,
+      exitResult
+    })).end()
   } catch (error) {
     next(error)
   }

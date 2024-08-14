@@ -65,6 +65,14 @@ export const updateChatRoom = async (chatRoomId: number, userId: number) => {
   })
 }
 
+export const deleteUserFromChatRoom = async (chatRoomId: number, userId: number) => {
+  return prisma.chatRoom.update({
+    where: { id: chatRoomId },
+    data: { users: { disconnect: { id: userId } } },
+    select: { users: true, id: true }
+  })
+}
+
 export const checkMembership = async (userId: number, chatRoomId: number) => {
   const membership = await prisma.chatRoom.findFirst({
     where: {
