@@ -4,9 +4,10 @@ import JWT from '@/utils/auth/jwt'
 import { NextFunction, Request, Response } from 'express'
 
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-  const token = req.header('Authorization')?.split('Bearer ')[1]
-  if (!token) throw new Error(CustomErrorCode.UNAUTHORIZED_TOKEN)
   try {
+    const token = req.header('Authorization')?.split('Bearer ')[1]
+    if (!token) throw new Error(CustomErrorCode.UNAUTHORIZED_TOKEN)
+
     const dbToken = await checkTokenValidity(token)
     if (!dbToken) throw new Error(CustomErrorCode.TOKEN_NOT_FOUND)
 
